@@ -137,7 +137,7 @@ void Part::Partition(map<int, LutType> &luts, map<int, DffType> &dffs,
     xadj.push_back(adjncy.size());
     assert(xadj.size() == (nVertices + 1));
     assert(adjncy.size() == (nEdges * 2));
-    vector<idx_t> part = part_func(xadj, adjncy, METIS_PartGraphRecursive);
+    part = part_func(xadj, adjncy, METIS_PartGraphRecursive);
 }
 
 vector<idx_t> Part::part_func(vector<idx_t> &xadj, vector<idx_t> &adjncy, /*vector<idx_t> &adjwgt, */ decltype(METIS_PartGraphKway) *METIS_PartGraphFunc)

@@ -1240,43 +1240,90 @@ void Parser::parse_v(std::string& v_path){
                         cur_dff.sens_edge.push_back(make_pair(sens[i], edge[i]));
                     }
                     // parsing assignsig_condsig <assignment signal, <condition signal, condition>>
-                    if (mark.size() == 2 && *(tmp.begin() + mark[0] + 1) == "if")
+                    if (mark.size() >= 2)
                     {
-                        vector<pair<string, int>> cond;
-                        if ((tmp.begin() + mark[0] + 2)->find("!") == string::npos)
-                            cond.push_back(make_pair((tmp.begin() + mark[0] + 2)->substr((tmp.begin() + mark[0] + 2)->find("(") + 1, (tmp.begin() + mark[0] + 2)->find(")") - (tmp.begin() + mark[0] + 2)->find("(") - 1), 1));
-                        else
-                            cond.push_back(make_pair((tmp.begin() + mark[0] + 2)->substr((tmp.begin() + mark[0] + 2)->find("!") + 1, (tmp.begin() + mark[0] + 2)->find(")") - (tmp.begin() + mark[0] + 2)->find("!") - 1), 0));               
-                        if (*(tmp.begin() + mark[0] + 4) == "<=")
-                            cur_dff.dff_out = *(tmp.begin() + mark[0] + 3);
-                        else if (*(tmp.begin() + mark[0] + 5) == "<=")
-                            cur_dff.dff_out = *(tmp.begin() + mark[0] + 3) + *(tmp.begin() + mark[0] + 4);
-                        auto it = find(tmp.begin(), tmp.end(), "<=");
-                        if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find(";") != string::npos)
+                        if (mark.size() == 2 && *(tmp.begin() + mark[0] + 1) == "if")
                         {
-                            if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") == string::npos)
-                            {
-                                string assignsig = (tmp.begin() + distance(tmp.begin(), it) + 1)->substr(0, (tmp.begin() + distance(tmp.begin(), it) + 1)->size() - 1);
-                                cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
-                            }
+                            vector<pair<string, int>> cond;
+                            if ((tmp.begin() + mark[0] + 2)->find("!") == string::npos)
+                                cond.push_back(make_pair((tmp.begin() + mark[0] + 2)->substr((tmp.begin() + mark[0] + 2)->find("(") + 1, (tmp.begin() + mark[0] + 2)->find(")") - (tmp.begin() + mark[0] + 2)->find("(") - 1), 1));
                             else
+                                cond.push_back(make_pair((tmp.begin() + mark[0] + 2)->substr((tmp.begin() + mark[0] + 2)->find("!") + 1, (tmp.begin() + mark[0] + 2)->find(")") - (tmp.begin() + mark[0] + 2)->find("!") - 1), 0));               
+                            if (*(tmp.begin() + mark[0] + 4) == "<=")
+                                cur_dff.dff_out = *(tmp.begin() + mark[0] + 3);
+                            else if (*(tmp.begin() + mark[0] + 5) == "<=")
+                                cur_dff.dff_out = *(tmp.begin() + mark[0] + 3) + *(tmp.begin() + mark[0] + 4);
+                            auto it = find(tmp.begin(), tmp.end(), "<=");
+                            if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find(";") != string::npos)
                             {
-                                string assignsig = (tmp.begin() + distance(tmp.begin(), it) + 1)->substr((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") + 2, 1);
-                                cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
+                                if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") == string::npos)
+                                {
+                                    string assignsig = (tmp.begin() + distance(tmp.begin(), it) + 1)->substr(0, (tmp.begin() + distance(tmp.begin(), it) + 1)->size() - 1);
+                                    cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
+                                }
+                                else
+                                {
+                                    string assignsig = (tmp.begin() + distance(tmp.begin(), it) + 1)->substr((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") + 2, 1);
+                                    cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
+                                }
+                            }
+                            else if (((tmp.begin() + distance(tmp.begin(), it) + 1)->find(";") == string::npos) && ((tmp.begin() + distance(tmp.begin(), it) + 2)->find(";") != string::npos))
+                            {
+                                if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") == string::npos)
+                                {
+                                    string assignsig = *(tmp.begin() + distance(tmp.begin(), it) + 1) + (tmp.begin() + distance(tmp.begin(), it) + 2)->substr(0, (tmp.begin() + distance(tmp.begin(), it) + 2)->size() - 1);
+                                    cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
+                                }
+                                else
+                                {
+                                    assert(*(tmp.begin() + distance(tmp.begin(), it) + 2) == ";");
+                                    string assignsig = (tmp.begin() + distance(tmp.begin(), it) + 1)->substr((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") + 2, 1);
+                                    cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
+                                }
                             }
                         }
-                        else if (((tmp.begin() + distance(tmp.begin(), it) + 1)->find(";") == string::npos) && ((tmp.begin() + distance(tmp.begin(), it) + 2)->find(";") != string::npos))
+                        else if (mark.size() == 3 && *(tmp.begin() + mark[0] + 1) == "if" && *(tmp.begin() + mark[1] + 1) == "if")
                         {
-                            if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") == string::npos)
-                            {
-                                string assignsig = *(tmp.begin() + distance(tmp.begin(), it) + 1) + (tmp.begin() + distance(tmp.begin(), it) + 2)->substr(0, (tmp.begin() + distance(tmp.begin(), it) + 2)->size() - 1);
-                                cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
-                            }
+                            vector<pair<string, int>> cond;
+                            if ((tmp.begin() + mark[0] + 2)->find("!") == string::npos)
+                                cond.push_back(make_pair((tmp.begin() + mark[0] + 2)->substr((tmp.begin() + mark[0] + 2)->find("(") + 1, (tmp.begin() + mark[0] + 2)->find(")") - (tmp.begin() + mark[0] + 2)->find("(") - 1), 1));
                             else
+                                cond.push_back(make_pair((tmp.begin() + mark[0] + 2)->substr((tmp.begin() + mark[0] + 2)->find("!") + 1, (tmp.begin() + mark[0] + 2)->find(")") - (tmp.begin() + mark[0] + 2)->find("!") - 1), 0));
+                            if ((tmp.begin() + mark[1] + 2)->find("!") == string::npos)
+                                cond.push_back(make_pair((tmp.begin() + mark[1] + 2)->substr((tmp.begin() + mark[1] + 2)->find("(") + 1, (tmp.begin() + mark[1] + 2)->find(")") - (tmp.begin() + mark[1] + 2)->find("(") - 1), 1));
+                            else
+                                cond.push_back(make_pair((tmp.begin() + mark[1] + 2)->substr((tmp.begin() + mark[1] + 2)->find("!") + 1, (tmp.begin() + mark[1] + 2)->find(")") - (tmp.begin() + mark[1] + 2)->find("!") - 1), 0));
+                            if (*(tmp.begin() + mark[1] + 4) == "<=")
+                                cur_dff.dff_out = *(tmp.begin() + mark[1] + 3);
+                            else if (*(tmp.begin() + mark[1] + 5) == "<=")
+                                cur_dff.dff_out = *(tmp.begin() + mark[1] + 3) + *(tmp.begin() + mark[1] + 4);
+                            auto it = find(tmp.begin(), tmp.end(), "<=");
+                            if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find(";") != string::npos)
                             {
-                                assert(*(tmp.begin() + distance(tmp.begin(), it) + 2) == ";");
-                                string assignsig = (tmp.begin() + distance(tmp.begin(), it) + 1)->substr((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") + 2, 1);
-                                cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
+                                if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") == string::npos)
+                                {
+                                    string assignsig = (tmp.begin() + distance(tmp.begin(), it) + 1)->substr(0, (tmp.begin() + distance(tmp.begin(), it) + 1)->size() - 1);
+                                    cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
+                                }
+                                else
+                                {
+                                    string assignsig = (tmp.begin() + distance(tmp.begin(), it) + 1)->substr((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") + 2, 1);
+                                    cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
+                                }
+                            }
+                            else if (((tmp.begin() + distance(tmp.begin(), it) + 1)->find(";") == string::npos) && ((tmp.begin() + distance(tmp.begin(), it) + 2)->find(";") != string::npos))
+                            {
+                                if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") == string::npos)
+                                {
+                                    string assignsig = *(tmp.begin() + distance(tmp.begin(), it) + 1) + (tmp.begin() + distance(tmp.begin(), it) + 2)->substr(0, (tmp.begin() + distance(tmp.begin(), it) + 2)->size() - 1);
+                                    cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
+                                }
+                                else
+                                {
+                                    assert(*(tmp.begin() + distance(tmp.begin(), it) + 2) == ";");
+                                    string assignsig = (tmp.begin() + distance(tmp.begin(), it) + 1)->substr((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") + 2, 1);
+                                    cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
+                                }
                             }
                         }
                         std::streampos pos = inf.tellg();
@@ -1329,7 +1376,7 @@ void Parser::parse_v(std::string& v_path){
                             }
                             else
                             {
-                                cur_dff.type = 2;
+                                if (mark.size() == 2) cur_dff.type = 2;
                                 vector<pair<string, int>> cond;
                                 cond.push_back(make_pair(" ", -1));
                                 auto it = find(_tmp.begin(), _tmp.end(), "<=");

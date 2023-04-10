@@ -8,7 +8,7 @@
 
 using namespace std;
 
-void COEGen(string &instr_out, string &out_dir, map<int, Processor> &processors,
-            map<int, LutType> &luts, map<int, DffType> &dffs, map<string, string> &pin_bits, map<string, string> &assign_pairs);
+// void COEGen(string &instr_out, string &out_dir, map<int, Processor> &processors,
+//             map<int, LutType> &luts, map<int, DffType> &dffs, map<string, string> &pin_bits, map<string, string> &assign_pairs);
 
 #endif

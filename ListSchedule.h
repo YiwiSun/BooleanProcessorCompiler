@@ -4,6 +4,7 @@
 #include <metis.h>
 
 #include "VCDTypes.h"
+#include "ArchDefine.h"
 
 #ifndef LISTSCHEDULE_H
 #define LISTSCHEDULE_H
@@ -23,7 +24,7 @@ public:
     //! Destructor
     ~ListSch();
 
-    vector<vector<int>> nodes_in_per_bp;
+    vector<vector<int>> nodes_in_per_bp(N_PROCESSORS, vector<int>());
 
     // Modified List Scheduling
     vector<vector<int>> MLS(vector<vector<int>> &levels_ASAP, vector<vector<int>> &levels_ALAP, vector<vector<int>> &edges,
