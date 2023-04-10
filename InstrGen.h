@@ -42,13 +42,15 @@ typedef struct
     vector<int> Operand_Addr;
 } Instr;
 
-vector<Instr> instr_mem(INS_DEPTH);
+// vector<Instr> instr_mem(INS_DEPTH);
 vector<vector<Instr>> tt_instr_mem(N_PROCESSORS, vector<Instr>(INS_DEPTH));
+vector<int> tt_instr_mem_cnt(N_PROCESSORS, 0);
 
-vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &luts, map<int, DffType> &dffs);
+vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &luts, map<int, DffType> &dffs,
+                               map<string, vector<int>> &net_for_id, map<string, vector<int>> &net_for_id_dff);
 string InstrCat(Instr &instr);
-string toBinary(int n);
 string HextoBinary(string HexDigit);
-
+string toBinary(int n);
+int    Sel_Exter_Datamem(int &n);
 
 #endif

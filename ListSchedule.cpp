@@ -1,6 +1,8 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <bitset>
+#include <bits/stdc++.h>
 
 #include "ListSchedule.h"
 #include "VCDTypes.h"
@@ -114,6 +116,20 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
         cout << "ListSchedule OK!" << endl;
     else
         cout << "ListSchedule ERROR!" << endl;
+
+    
+    // debug
+    for (auto iter = nodes_in_per_bp.begin(); iter != nodes_in_per_bp.end(); iter++)
+    {
+        cout << "[Processor " << distance(nodes_in_per_bp.begin(), iter) << "]" << endl;
+        for (auto node = iter->begin(); node != iter->end(); node++)
+        {
+            cout << setw(7) << *node << " ";
+        }
+        cout << endl;
+    }
+
+    FF_allocate(nodes_in_per_bp, luts, dffs);
     return SchList;
 }
 
@@ -138,11 +154,29 @@ int ListSch::allocate_and_collapse_IMM(int &v, vector<int> &Max_Cycle, const int
     {
         LutType cur_lut = luts[v];
         cur_lut.node_addr = make_pair(cur_part, cur_BP);
+        nodes_in_per_bp[cur_part * N_PROCESSORS_PER_CLUSTER + cur_BP].push_back(v);
     }
     else
     {
         DffType cur_dff = dffs[v - luts.size()];
         cur_dff.node_addr = make_pair(cur_part, cur_BP);
+        nodes_in_per_bp[cur_part * N_PROCESSORS_PER_CLUSTER + cur_BP].push_back(v);
     }
     return 1;
+}
+
+void ListSch::FF_allocate(vector<vector<int>> &nodes_in_per_bp, map<int, LutType> &luts, map<int, DffType> &dffs)
+{
+    for (auto iter = nodes_in_per_bp.begin(); iter != nodes_in_per_bp.end(); iter++)
+    {
+        int addr {0};
+        for (auto node = iter->begin(); node != iter->end(); iter++)
+        {
+            if (*node > luts.size())
+            {
+                dffs[*node - luts.size()].FF_Datamem_Addr = addr;
+                addr++;
+            }
+        }
+    }
 }

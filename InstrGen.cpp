@@ -1,5 +1,6 @@
 #include <iostream>
 #include <algorithm>
+#include <string>
 #include <bitset>
 #include <bits/stdc++.h>
 
@@ -9,8 +10,106 @@
 
 using namespace std;
 
-vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &luts, map<int, DffType> &dffs)
+vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &luts, map<int, DffType> &dffs,
+                               map<string, vector<int>> &net_for_id, map<string, vector<int>> &net_for_id_dff)
 {
+
+    // Transmit FF data in advance
+    for (int n_dff = 0; n_dff < dffs.size(); n_dff++)
+    {
+        DffType cur_dff = dffs[n_dff];
+        auto cur_node_addr = cur_dff.node_addr;
+        auto tt_instr_mem_index = cur_node_addr.first * N_PROCESSORS_PER_CLUSTER + cur_node_addr.second;
+        auto cur_instr_mem_cnt  = tt_instr_mem_cnt[tt_instr_mem_index];
+        Instr new_instr;
+        new_instr.Opcode = STATIC_CONFIG;
+        new_instr.Jump   = 00;
+        new_instr.Datamem_Sel.push_back(FF_Datamem);
+        new_instr.Operand_Addr.push_back(dffs[n_dff].FF_Datamem_Addr);
+        tt_instr_mem[tt_instr_mem_index][cur_instr_mem_cnt] = new_instr;
+        tt_instr_mem_cnt[tt_instr_mem_index] += 1;
+
+        auto cur_node_for_id = net_for_id[cur_dff.dff_out];
+        for (auto i = cur_node_for_id.begin(); i != cur_node_for_id.end(); i++)
+        {
+            if (*i < luts.size())
+            {
+                auto for_node_addr = luts[*i].node_addr;
+                auto for_node_addr_num = for_node_addr.first * N_PROCESSORS_PER_CLUSTER + for_node_addr.second;
+                if (for_node_addr == cur_node_addr)
+                {
+                    auto iter = find(luts[*i].in_net_from_id.begin(), luts[*i].in_net_from_id.end(), n_dff + luts.size());
+                    luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = make_pair(FF_Datamem, dffs[n_dff].FF_Datamem_Addr);
+                    luts[*i].in_net_from_ready[distance(luts[*i].in_net_from_id.begin(), iter)] = 1;
+                }
+                else
+                {
+                    if (tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.size() < 4)
+                    {
+                        tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.push_back(tt_instr_mem_index);
+                        int n = tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.size();
+                        auto iter = find(luts[*i].in_net_from_id.begin(), luts[*i].in_net_from_id.end(), n_dff + luts.size());
+                        luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt);
+                        luts[*i].in_net_from_ready[distance(luts[*i].in_net_from_id.begin(), iter)] = 1;
+                    }
+                    else
+                    {
+                        for (int offset = 1;; offset++)
+                        {
+                            if (tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.size() < 4)
+                            {
+                                tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.push_back(tt_instr_mem_index);
+                                int n = tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.size();
+                                auto iter = find(luts[*i].in_net_from_id.begin(), luts[*i].in_net_from_id.end(), n_dff + luts.size());
+                                luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
+                                luts[*i].in_net_from_ready[distance(luts[*i].in_net_from_id.begin(), iter)] = 1;
+                                tt_instr_mem_cnt[tt_instr_mem_index] += offset;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                auto for_node_addr = dffs[*i - luts.size()].node_addr;
+                auto for_node_addr_num = for_node_addr.first * N_PROCESSORS_PER_CLUSTER + for_node_addr.second;
+                if (for_node_addr == cur_node_addr)
+                {
+                    auto iter = find(dffs[*i - luts.size()].in_net_from_id.begin(), dffs[*i - luts.size()].in_net_from_id.end(), n_dff + luts.size());
+                    dffs[*i - luts.size()].in_net_from_addr[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = make_pair(Inter_Datamem, cur_instr_mem_cnt);
+                    dffs[*i - luts.size()].in_net_from_ready[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = 1;
+                }
+                else
+                {
+                    if (tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.size() < 4)
+                    {
+                        tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.push_back(tt_instr_mem_index);
+                        int n = tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.size();
+                        auto iter = find(dffs[*i - luts.size()].in_net_from_id.begin(), dffs[*i - luts.size()].in_net_from_id.end(), n_dff + luts.size());
+                        dffs[*i - luts.size()].in_net_from_addr[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt);
+                        dffs[*i - luts.size()].in_net_from_ready[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = 1;
+                    }
+                    else
+                    {
+                        for (int offset = 1;; offset++)
+                        {
+                            if (tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.size() < 4)
+                            {
+                                tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.push_back(tt_instr_mem_index);
+                                int n = tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.size();
+                                auto iter = find(dffs[*i - luts.size()].in_net_from_id.begin(), dffs[*i - luts.size()].in_net_from_id.end(), n_dff + luts.size());
+                                dffs[*i - luts.size()].in_net_from_addr[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
+                                dffs[*i - luts.size()].in_net_from_ready[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = 1;
+                                tt_instr_mem_cnt[tt_instr_mem_index] += offset;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // Generate for nodes simulation
     for (auto level = SchList.begin(); level != SchList.end(); level++)
@@ -26,13 +125,108 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                     cout << "ERROR: Input signal not ready " << "(LUT " << node_num << ")" << ", instruction generation failed!" << endl;
                     exit(-1);
                 }
+                pair<int, int> cur_node_addr = cur_lut.node_addr;
+                int tt_instr_mem_index = cur_node_addr.first * N_PROCESSORS_PER_CLUSTER + cur_node_addr.second;
+                int cur_instr_mem_cnt  = tt_instr_mem_cnt[tt_instr_mem_index];
+                int pushaddr = cur_instr_mem_cnt;
                 Instr new_instr;
-                new_instr.Opcode = LUT_CONFIG;
-                new_instr.Jump   = 00;
-                vector<int> node_addr(4, 0);
-                new_instr.Node_Addr = node_addr;
-                new_instr.Value_Data = cur_lut.lut_res;
-                
+                string lut_res_binary = HextoBinary(cur_lut.lut_res);
+                new_instr.Opcode    = LUT_CONFIG;
+                new_instr.Jump      = 00;
+                new_instr.Value_Data.push_back(stoi(lut_res_binary));
+                for (auto i = cur_lut.in_net_from_addr.begin(); i != cur_lut.in_net_from_addr.end(); i++)
+                {
+                    new_instr.Datamem_Sel.push_back(i->first);
+                }
+                for (auto i = cur_lut.in_net_from_addr.begin(); i != cur_lut.in_net_from_addr.end(); i++)
+                {
+                    new_instr.Operand_Addr.push_back(i->second);
+                    if (i->second != MEM_DEPTH - 1 && i->second >= cur_instr_mem_cnt)
+                        pushaddr = ((i->second + 1) > pushaddr) ? i->second : pushaddr;
+                }
+                tt_instr_mem[tt_instr_mem_index][pushaddr] = new_instr;
+                tt_instr_mem_cnt[tt_instr_mem_index] = pushaddr + 1;
+
+                auto cur_node_for_id = net_for_id[cur_lut.out_ports];
+                for (auto i = cur_node_for_id.begin(); i != cur_node_for_id.end(); i++)
+                {
+                    if (*i < luts.size())
+                    {
+                        auto for_node_addr = luts[*i].node_addr;
+                        auto for_node_addr_num = for_node_addr.first * N_PROCESSORS_PER_CLUSTER + for_node_addr.second;
+                        if (for_node_addr == cur_node_addr)
+                        {
+                            auto iter = find(luts[*i].in_net_from_id.begin(), luts[*i].in_net_from_id.end(), node_num);
+                            luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = make_pair(Inter_Datamem, pushaddr);
+                            luts[*i].in_net_from_ready[distance(luts[*i].in_net_from_id.begin(), iter)] = 1;
+                        }
+                        else
+                        {
+                            if (tt_instr_mem[for_node_addr_num][pushaddr].Node_Addr.size() < 4)
+                            {
+                                tt_instr_mem[for_node_addr_num][pushaddr].Node_Addr.push_back(tt_instr_mem_index);
+                                int n = tt_instr_mem[for_node_addr_num][pushaddr].Node_Addr.size();
+                                auto iter = find(luts[*i].in_net_from_id.begin(), luts[*i].in_net_from_id.end(), node_num);
+                                luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), pushaddr);
+                                luts[*i].in_net_from_ready[distance(luts[*i].in_net_from_id.begin(), iter)] = 1;
+                            }
+                            else
+                            {
+                                for (int offset = 1; ; offset++)
+                                {
+                                    if (tt_instr_mem[for_node_addr_num][pushaddr + offset].Node_Addr.size() < 4)
+                                    {
+                                        tt_instr_mem[for_node_addr_num][pushaddr + offset].Node_Addr.push_back(tt_instr_mem_index);
+                                        int n = tt_instr_mem[for_node_addr_num][pushaddr + offset].Node_Addr.size();
+                                        auto iter = find(luts[*i].in_net_from_id.begin(), luts[*i].in_net_from_id.end(), node_num);
+                                        luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
+                                        luts[*i].in_net_from_ready[distance(luts[*i].in_net_from_id.begin(), iter)] = 1;
+                                        tt_instr_mem_cnt[tt_instr_mem_index] += offset;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        auto for_node_addr = dffs[*i - luts.size()].node_addr;
+                        auto for_node_addr_num = for_node_addr.first * N_PROCESSORS_PER_CLUSTER + for_node_addr.second;
+                        if (for_node_addr == cur_node_addr)
+                        {
+                            auto iter = find(dffs[*i - luts.size()].in_net_from_id.begin(), dffs[*i - luts.size()].in_net_from_id.end(), node_num);
+                            dffs[*i - luts.size()].in_net_from_addr[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = make_pair(Inter_Datamem, pushaddr);
+                            dffs[*i - luts.size()].in_net_from_ready[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = 1;
+                        }
+                        else
+                        {
+                            if (tt_instr_mem[for_node_addr_num][pushaddr].Node_Addr.size() < 4)
+                            {
+                                tt_instr_mem[for_node_addr_num][pushaddr].Node_Addr.push_back(tt_instr_mem_index);
+                                int n = tt_instr_mem[for_node_addr_num][pushaddr].Node_Addr.size();
+                                auto iter = find(dffs[*i - luts.size()].in_net_from_id.begin(), dffs[*i - luts.size()].in_net_from_id.end(), node_num);
+                                dffs[*i - luts.size()].in_net_from_addr[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), pushaddr);
+                                dffs[*i - luts.size()].in_net_from_ready[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = 1;
+                            }
+                            else
+                            {
+                                for (int offset = 1;  ; offset++)
+                                {
+                                    if (tt_instr_mem[for_node_addr_num][pushaddr + offset].Node_Addr.size() < 4)
+                                    {
+                                        tt_instr_mem[for_node_addr_num][pushaddr + offset].Node_Addr.push_back(tt_instr_mem_index);
+                                        int n = tt_instr_mem[for_node_addr_num][pushaddr + offset].Node_Addr.size();
+                                        auto iter = find(dffs[*i - luts.size()].in_net_from_id.begin(), dffs[*i - luts.size()].in_net_from_id.end(), node_num);
+                                        dffs[*i - luts.size()].in_net_from_addr[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
+                                        dffs[*i - luts.size()].in_net_from_ready[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = 1;
+                                        tt_instr_mem_cnt[tt_instr_mem_index] += offset;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             else
             {
@@ -42,184 +236,28 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                     cout << "ERROR: Input signal not ready " << "(DFF " << node_num - luts.size() << ")" << ", instruction generation failed!" << endl;
                     exit(-1);
                 }
-            }
-        }
-        // Instruction Alignment with IDLE
-        int longest_instr1{0};
-        for (auto it = processors.begin(); it != processors.end(); it++)
-        {
-            if (it->second.instr_mem.size() > longest_instr1)
-                longest_instr1 = it->second.instr_mem.size();
-        }
-        for (auto it = processors.begin(); it != processors.end(); it++)
-        {
-            if (it->second.instr_mem.size() < longest_instr1)
-            {
-                Instr_4 instr_4;
-                instr_4.PC_Jump = 0;
-                instr_4.BM_Jump = 0;
-                instr_4.Node_Addr.push_back(it->first / N_PROCESSORS_PER_CLUSTER);
-                instr_4.Node_Addr.push_back(it->first % N_PROCESSORS_PER_CLUSTER);
-                string lut_instr_4 = cat_instr_4(instr_4);
-                processors[it->first].instr_mem.insert(processors[it->first].instr_mem.end(), (longest_instr1 - int(it->second.instr_mem.size())), lut_instr_4);
-            }
-        }
-        for (auto it = processors.begin(); it != processors.end(); it++)
-        {
-            assert(int(it->second.instr_mem.size()) == longest_instr1);
-        }
-    }
-
-
-    // Generating Instructions for LUTs
-    for (vector<vector<int>>::iterator l = levels.begin(); l != levels.end(); l++)
-    {
-        for (vector<int>::iterator i = l->begin(); i != l->end(); i++)
-        {
-            int lut_num = *i;
-            LutType cur_lut = luts[*i];
-            int cur_processor_id = N_PROCESSORS_PER_CLUSTER * cur_lut.node_addr[0] + cur_lut.node_addr[1];
-
-            Instr_1 instr_1;
-            instr_1.LUT_Value = cur_lut.lut_res;
-            instr_1.Node_Addr = cur_lut.node_addr;
-            instr_1.PC_Jump = 0;
-            instr_1.BM_Jump = 0;
-            vector<int> cur_in_net_from_id = cur_lut.in_net_from_id;
-            vector<int> cur_in_net_from_part = cur_lut.in_net_from_part;
-            for (int it = 0; it < cur_in_net_from_id.size();)
-            {
-                if (cur_in_net_from_id[it] == -1 || cur_in_net_from_id[it] == -2 ||
-                    (cur_in_net_from_id[it] < luts.size() && luts[cur_in_net_from_id[it]].node_addr == cur_lut.node_addr) ||
-                    (cur_in_net_from_id[it] >= luts.size()))
-                {
-                    cur_in_net_from_id.erase(cur_in_net_from_id.begin() + it);
-                    cur_in_net_from_part.erase(cur_in_net_from_part.begin() + it);
-                }
-                else
-                    it++;
-            }
-
-            vector<int> config_instr_pos;
-            map<int, int> from_id_from_part; // <in_from_id, id_from_part>
-            map<int, int> from_id_opr_addr;  // <in_from_id, operand_addr>
-            if (cur_in_net_from_id.size() >= 1)
-            {
-                for (int in = 0; in < cur_in_net_from_id.size(); in++)
-                {
-                    LutType cur_in_from_lut = luts[cur_in_net_from_id[in]];
-                    int from_processor_id = N_PROCESSORS_PER_CLUSTER * cur_in_from_lut.node_addr[0] + cur_in_from_lut.node_addr[1];
-                    from_id_from_part.insert(pair<int, int>(cur_in_net_from_id[in], cur_in_net_from_part[in]));
-                    int get_res_addr;
-                    if (processors[from_processor_id].id_outaddr.first == cur_in_net_from_id[in] && processors[from_processor_id].id_outaddr.second > 0 && processors[from_processor_id].id_outaddr.second < INS_DEPTH)
-                    {
-                        get_res_addr = max(processors[from_processor_id].id_outaddr.second, int(processors[cur_processor_id].instr_mem.size()));
-                    }
-                    else
-                    {
-                        Instr_2 instr_2;
-                        instr_2.PC_Jump = 0;
-                        instr_2.BM_Jump = 0;
-                        instr_2.Node_Addr = cur_in_from_lut.node_addr;
-                        instr_2.Data_Mem_Select = "0";
-                        instr_2.Operand_Addr = cur_in_from_lut.res_pos_at_mem;
-                        string lut_instr_2 = cat_instr_2(instr_2);
-                        processors[from_processor_id].instr_mem.push_back(lut_instr_2);
-                        processors[from_processor_id].id_outaddr = pair<int, int>(cur_in_net_from_id[in], int(processors[from_processor_id].instr_mem.size()) - 1);
-                        get_res_addr = max(processors[from_processor_id].id_outaddr.second, int(processors[cur_processor_id].instr_mem.size()));
-                    }
-                    from_id_opr_addr.insert(pair<int, int>(cur_in_net_from_id[in], get_res_addr));
-                    if (from_id_from_part[cur_in_net_from_id[in]] == -3) // current part
-                        config_instr_pos.push_back(get_res_addr + INTRA_CLUSTER_CLK - 1);
-                    else // other part
-                        config_instr_pos.push_back(get_res_addr + INTER_CLUSTER_CLK - 1);
-                    int cur_lut_idle_num = get_res_addr - (int(processors[cur_processor_id].instr_mem.size()) - 1);
-                    int from_lut_idle_num = ((get_res_addr - (int(processors[from_processor_id].instr_mem.size()) - 1)) > 0) ? (get_res_addr - int(processors[from_processor_id].instr_mem.size()) + 1) : 0;
-                    Instr_4 instr_4;
-                    instr_4.PC_Jump = 0;
-                    instr_4.BM_Jump = 0;
-                    instr_4.Node_Addr = cur_in_from_lut.node_addr;
-                    string lut_instr_4 = cat_instr_4(instr_4);
-                    // current lut
-                    processors[cur_processor_id].instr_mem.insert(processors[cur_processor_id].instr_mem.end(), cur_lut_idle_num, lut_instr_4);
-                    // in from lut
-                    processors[from_processor_id].instr_mem.insert(processors[from_processor_id].instr_mem.end(), from_lut_idle_num, lut_instr_4);
-                }
-                auto max_config_addr = max_element(config_instr_pos.begin(), config_instr_pos.end());
-                Instr_4 instr_4;
-                instr_4.PC_Jump = 0;
-                instr_4.BM_Jump = 0;
-                instr_4.Node_Addr = cur_lut.node_addr;
-                string lut_instr_4 = cat_instr_4(instr_4);
-                processors[cur_processor_id].instr_mem.insert(processors[cur_processor_id].instr_mem.end(), *max_config_addr - int(processors[cur_processor_id].instr_mem.size()), lut_instr_4);
-            }
-
-            // Data_Mem_Select && Operand_Addr
-            for (int in = 0; in < cur_lut.in_ports.size(); in++)
-            {
-                if (cur_lut.in_net_from_id[in] == -1) // -1: in net from initial module
-                {
-                    if (vcd_values.find(cur_lut.in_net_from_info[in]) != vcd_values.end())
-                    {
-                        vector<short> *tvs_val = vcd_values[cur_lut.in_net_from_info[in]];
-                        if (*(tvs_val->begin()) == 0)
-                            instr_1.Data_Mem_Select.append("0");
-                        else
-                            instr_1.Data_Mem_Select.append("1");
-                        // for input initial signal INITIAL_JUMP_SIG changing
-                        if (cur_lut.in_net_from_info[in] == INITIAL_JUMP_SIG)
-                            instr_1.Operand_Addr.push_back(INITIAL_JUMP_ADDR);
-                        else
-                            instr_1.Operand_Addr.push_back(MEM_DEPTH - 1);
-                    }
-                    else
-                    {
-                        std::cout << "ERROR: No initial info of signal " << cur_lut.in_net_from_info[in] << " (LUT " << lut_num << ")"
-                                  << " in vcd file!" << endl;
-                    }
-                }
-                else if (cur_lut.in_net_from_id[in] == -2) // -2: in net from assign pin bit
-                {
-                    if (cur_lut.in_net_from_pos_at_level[in] == 0)
-                        instr_1.Data_Mem_Select.append("0");
-                    else
-                        instr_1.Data_Mem_Select.append("1");
-                    instr_1.Operand_Addr.push_back(MEM_DEPTH - 1);
-                }
-                else if ((cur_lut.in_net_from_id[in] < luts.size()) && luts[cur_lut.in_net_from_id[in]].node_addr == cur_lut.node_addr)
-                {
-                    instr_1.Data_Mem_Select.append("0");
-                    instr_1.Operand_Addr.push_back(luts[cur_lut.in_net_from_id[in]].res_pos_at_mem);
-                }
-                else if (cur_lut.in_net_from_id[in] >= luts.size())
-                {
-                    if (dffs[cur_lut.in_net_from_id[in] - luts.size()].node_addr == cur_lut.node_addr)
-                        instr_1.Data_Mem_Select.append("0");
-                    else
-                        instr_1.Data_Mem_Select.append("1");
-                    blank_addr ba;
-                    ba.dff_num = cur_lut.in_net_from_id[in] - luts.size();
-                    ba.Node_Node_Addr = cur_lut.node_addr;
-                    ba.Node_Instr_Addr = processors[cur_processor_id].instr_mem.size();
-                    int operand_addr_num = instr_1.Operand_Addr.size();
-                    int input_num = cur_lut.in_ports.size();
-                    int range_left = (35 - 9 * (4 - input_num)) - operand_addr_num * 9;
-                    int range_right = (27 - 9 * (4 - input_num)) - operand_addr_num * 9;
-                    ba.Replaced_Instr_Range = pair<int, int>(range_left, range_right);
-                    blank_addrs[lut_num].push_back(ba);
-                    instr_1.Operand_Addr.push_back(dffs[cur_lut.in_net_from_id[in] - luts.size()].res_pos_at_mem);
-                }
-                else
-                {
-                    instr_1.Data_Mem_Select.append("1");
-                    auto it = from_id_opr_addr.find(cur_lut.in_net_from_id[in]);
-                    instr_1.Operand_Addr.push_back(it->second);
-                }
-            }
-            string lut_instr_1 = cat_instr_1(instr_1);
-            processors[cur_processor_id].instr_mem.push_back(lut_instr_1);
-            luts[lut_num].res_pos_at_mem = int(processors[cur_processor_id].instr_mem.size()) - 1;
-            processors[cur_processor_id].id_outaddr = pair<int, int>(lut_num, int(processors[cur_processor_id].instr_mem.size()) - 1);
+                // pair<int, int> cur_node_addr = cur_dff.node_addr;
+                // int tt_instr_mem_index = cur_node_addr.first * N_PROCESSORS_PER_CLUSTER + cur_node_addr.second;
+                // int cur_instr_mem_cnt = tt_instr_mem_cnt[tt_instr_mem_index];
+                // int pushaddr = cur_instr_mem_cnt;
+                // Instr new_instr;
+                // string lut_res_binary = HextoBinary(cur_dff.lut_res);
+                // new_instr.Opcode = LUT_CONFIG;
+                // new_instr.Jump = 00;
+                // new_instr.Value_Data.push_back(stoi(lut_res_binary));
+                // for (auto i = cur_dff.in_net_from_addr.begin(); i != cur_dff.in_net_from_addr.end(); i++)
+                // {
+                //     new_instr.Datamem_Sel.push_back(i->first);
+                // }
+                // for (auto i = cur_dff.in_net_from_addr.begin(); i != cur_dff.in_net_from_addr.end(); i++)
+                // {
+                //     new_instr.Operand_Addr.push_back(i->second);
+                //     if (i->second != MEM_DEPTH - 1 && i->second >= cur_instr_mem_cnt)
+                //         pushaddr = ((i->second + 1) > pushaddr) ? i->second : pushaddr;
+                // }
+                // tt_instr_mem[tt_instr_mem_index][pushaddr] = new_instr;
+                // tt_instr_mem_cnt[tt_instr_mem_index] = pushaddr + 1;
+           }
         }
     }
 
@@ -1801,7 +1839,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
         processors[it->first].instr_mem.insert(processors[it->first].instr_mem.end(), 1, lut_instr_3);
     }
 
-    return processors;
+    return tt_instr_mem;
 }
 
 
@@ -1888,6 +1926,25 @@ string HextoBinary(string HexDigit)
         }
     }
     return BinDigit;
+}
+
+int Sel_Exter_Datamem(int &n)
+{
+    switch (n)
+    {
+    case 1:
+        return Exter_Datamem_3;
+        break;
+    case 2:
+        return Exter_Datamem_2;
+        break;
+    case 3:
+        return Exter_Datamem_1;
+        break;
+    case 4:
+        return Exter_Datamem_0;
+        break;
+    }
 }
 
 string cat_instr_1(Instr_1 &instr_1)

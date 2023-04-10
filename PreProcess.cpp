@@ -69,7 +69,7 @@ void PreProcess(vector<idx_t> &part,
                     int cur_val = (*(tvs->begin())).value;
                     // at this case, 'in net from id' means value
                     luts[n].in_net_from_type.push_back(2);
-                    luts[n].in_net_from_id.push_back(cur_val);
+                    luts[n].in_net_from_id.push_back(cur_val == 0 ? -2 : -1);
                     luts[n].in_net_from_info.push_back(cur_in);
                     luts[n].in_net_from_part.push_back(-1);
                     if (cur_val == 0)
@@ -113,7 +113,7 @@ void PreProcess(vector<idx_t> &part,
                         int cur_val = (*(tvs->begin())).value;
                         // at this case, 'in net from id' means value
                         luts[n].in_net_from_type.push_back(2);
-                        luts[n].in_net_from_id.push_back(cur_val);
+                        luts[n].in_net_from_id.push_back(cur_val == 0 ? -2 : -1);
                         luts[n].in_net_from_info.push_back(temp);
                         luts[n].in_net_from_part.push_back(-1);
                         if (cur_val == 0)
@@ -128,7 +128,7 @@ void PreProcess(vector<idx_t> &part,
                         auto cur_val = *(tvs_val->begin());
                         // at this case, 'in net from id' means value
                         luts[n].in_net_from_type.push_back(3);
-                        luts[n].in_net_from_id.push_back(cur_val);
+                        luts[n].in_net_from_id.push_back(cur_val == 0 ? -2 : -1);
                         luts[n].in_net_from_info.push_back(temp);
                         luts[n].in_net_from_part.push_back(-1);
                         if (cur_val == 0)
@@ -148,7 +148,7 @@ void PreProcess(vector<idx_t> &part,
                     auto cur_val = *(tvs_val->begin());
                     // at this case, 'in net from id' means value
                     luts[n].in_net_from_type.push_back(3);
-                    luts[n].in_net_from_id.push_back(cur_val);
+                    luts[n].in_net_from_id.push_back(cur_val == 0 ? -2 : -1);
                     luts[n].in_net_from_info.push_back(cur_in);
                     luts[n].in_net_from_part.push_back(-1);
                     if (cur_val == 0)
@@ -203,7 +203,7 @@ void PreProcess(vector<idx_t> &part,
                     int cur_val = (*(tvs->begin())).value;
                     // at this case, 'in net from id' means value
                     dffs[dff_num].in_net_from_type.push_back(2);
-                    dffs[dff_num].in_net_from_id.push_back(cur_val);
+                    dffs[dff_num].in_net_from_id.push_back(cur_val == 0 ? -2 : -1);
                     dffs[dff_num].in_net_from_info.push_back(cur_in);
                     dffs[dff_num].in_net_from_part.push_back(-1);
                     if (cur_val == 0)
@@ -247,7 +247,7 @@ void PreProcess(vector<idx_t> &part,
                         int cur_val = (*(tvs->begin())).value;
                         // at this case, 'in net from id' means value
                         dffs[dff_num].in_net_from_type.push_back(2);
-                        dffs[dff_num].in_net_from_id.push_back(cur_val);
+                        dffs[dff_num].in_net_from_id.push_back(cur_val == 0 ? -2 :-1);
                         dffs[dff_num].in_net_from_info.push_back(temp);
                         dffs[dff_num].in_net_from_part.push_back(-2);
                         if (cur_val == 0)
@@ -262,7 +262,7 @@ void PreProcess(vector<idx_t> &part,
                         auto cur_val = *(tvs_val->begin());
                         // at this case, 'in net from id' means value
                         dffs[dff_num].in_net_from_type.push_back(3);
-                        dffs[dff_num].in_net_from_id.push_back(cur_val);
+                        dffs[dff_num].in_net_from_id.push_back(cur_val == 0 ? -2 : -1);
                         dffs[dff_num].in_net_from_info.push_back(temp);
                         dffs[dff_num].in_net_from_part.push_back(-1);
                         if (cur_val == 0)
@@ -282,7 +282,7 @@ void PreProcess(vector<idx_t> &part,
                     auto cur_val = *(tvs_val->begin());
                     // at this case, 'in net from id' means value
                     dffs[dff_num].in_net_from_type.push_back(3);
-                    dffs[dff_num].in_net_from_id.push_back(cur_val);
+                    dffs[dff_num].in_net_from_id.push_back(cur_val == 0 ? -2 : -1);
                     dffs[dff_num].in_net_from_info.push_back(cur_in);
                     dffs[dff_num].in_net_from_part.push_back(-1);
                     if (cur_val == 0)

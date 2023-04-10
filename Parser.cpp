@@ -1198,7 +1198,6 @@ void Parser::parse_v(std::string& v_path){
                     DffType cur_dff;
                     cur_dff.num = dff_num;
                     dff_num += 1;
-                    // cur_lut.isDff = 1;
                     vector<int> mark;
                     vector<string> sens;
                     vector<string> edge;
@@ -1214,6 +1213,8 @@ void Parser::parse_v(std::string& v_path){
                         cur_dff.type = 0;
                     else if (mark.size() == 2)
                         cur_dff.type = 1;
+                    else if (mark.size() == 3)
+                        cur_dff.type = 4;
                     // parsing sensitive signals
                     for (vector<string>::iterator i = tmp.begin() + 1; i <= tmp.begin() + mark[0]; i++)
                     {
@@ -1241,11 +1242,11 @@ void Parser::parse_v(std::string& v_path){
                     // parsing assignsig_condsig <assignment signal, <condition signal, condition>>
                     if (mark.size() == 2 && *(tmp.begin() + mark[0] + 1) == "if")
                     {
-                        pair<string, int> cond;
+                        vector<pair<string, int>> cond;
                         if ((tmp.begin() + mark[0] + 2)->find("!") == string::npos)
-                            cond = make_pair((tmp.begin() + mark[0] + 2)->substr((tmp.begin() + mark[0] + 2)->find("(") + 1, (tmp.begin() + mark[0] + 2)->find(")") - (tmp.begin() + mark[0] + 2)->find("(") - 1), 1);
+                            cond.push_back(make_pair((tmp.begin() + mark[0] + 2)->substr((tmp.begin() + mark[0] + 2)->find("(") + 1, (tmp.begin() + mark[0] + 2)->find(")") - (tmp.begin() + mark[0] + 2)->find("(") - 1), 1));
                         else
-                            cond = make_pair((tmp.begin() + mark[0] + 2)->substr((tmp.begin() + mark[0] + 2)->find("!") + 1, (tmp.begin() + mark[0] + 2)->find(")") - (tmp.begin() + mark[0] + 2)->find("!") - 1), 0);               
+                            cond.push_back(make_pair((tmp.begin() + mark[0] + 2)->substr((tmp.begin() + mark[0] + 2)->find("!") + 1, (tmp.begin() + mark[0] + 2)->find(")") - (tmp.begin() + mark[0] + 2)->find("!") - 1), 0));               
                         if (*(tmp.begin() + mark[0] + 4) == "<=")
                             cur_dff.dff_out = *(tmp.begin() + mark[0] + 3);
                         else if (*(tmp.begin() + mark[0] + 5) == "<=")
@@ -1264,7 +1265,7 @@ void Parser::parse_v(std::string& v_path){
                                 cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
                             }
                         }
-                        else if (((tmp.begin() + distance(tmp.begin(), it) + 1)->find(";") != string::npos) && ((tmp.begin() + distance(tmp.begin(), it) + 2)->find(";") == string::npos))
+                        else if (((tmp.begin() + distance(tmp.begin(), it) + 1)->find(";") == string::npos) && ((tmp.begin() + distance(tmp.begin(), it) + 2)->find(";") != string::npos))
                         {
                             if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") == string::npos)
                             {
@@ -1292,11 +1293,11 @@ void Parser::parse_v(std::string& v_path){
                             if (_tmp[0] == "else" && _tmp[1] == "if")
                             {
                                 cur_dff.type = 3;
-                                pair<string, int> cond;
+                                vector<pair<string, int>> cond;
                                 if (_tmp[2].find("!") == string::npos)
-                                    cond = make_pair(_tmp[2].substr(_tmp[2].find("(") + 1, _tmp[2].find(")") - _tmp[2].find("(") - 1), 1);
+                                    cond.push_back(make_pair(_tmp[2].substr(_tmp[2].find("(") + 1, _tmp[2].find(")") - _tmp[2].find("(") - 1), 1));
                                 else
-                                    cond = make_pair(_tmp[2].substr(_tmp[2].find("!") + 1, _tmp[2].find(")") - _tmp[2].find("!") - 1), 0);
+                                    cond.push_back(make_pair(_tmp[2].substr(_tmp[2].find("!") + 1, _tmp[2].find(")") - _tmp[2].find("!") - 1), 0));
                                 auto it = find(_tmp.begin(), _tmp.end(), "<=");
                                 if ((_tmp.begin() + distance(_tmp.begin(), it) + 1)->find(";") != string::npos)
                                 {
@@ -1329,7 +1330,8 @@ void Parser::parse_v(std::string& v_path){
                             else
                             {
                                 cur_dff.type = 2;
-                                pair<string, int> cond(" ", -1);
+                                vector<pair<string, int>> cond;
+                                cond.push_back(make_pair(" ", -1));
                                 auto it = find(_tmp.begin(), _tmp.end(), "<=");
                                 if ((_tmp.begin() + distance(_tmp.begin(), it) + 1)->find(";") != string::npos)
                                 {
@@ -1365,7 +1367,8 @@ void Parser::parse_v(std::string& v_path){
                     }
                     else
                     {
-                        pair<string, int> cond(" ", -1);
+                        vector<pair<string, int>> cond;
+                        cond.push_back(make_pair(" ", -1));
                         if (*(tmp.begin() + mark[0] + 2) == "<=")
                             cur_dff.dff_out = *(tmp.begin() + mark[0] + 1);
                         else if (*(tmp.begin() + mark[0] + 3) == "<=")
@@ -1409,11 +1412,14 @@ void Parser::parse_v(std::string& v_path){
                             assert(find_pinbit != pin_bits.end());
                             cur_dff_in_ports.push_back(i->first);
                         }
-                        if (i->second.first != " ")
+                        for (auto j = i->second.begin(); j != i->second.end(); j++)
                         {
-                            auto find_pinbit = pin_bits.find(i->second.first);
-                            assert(find_pinbit != pin_bits.end());
-                            cur_dff_in_ports.push_back(i->second.first);
+                            if (j->first != " ")
+                            {
+                                auto find_pinbit = pin_bits.find(j->first);
+                                assert(find_pinbit != pin_bits.end());
+                                cur_dff_in_ports.push_back(j->first);
+                            }
                         }
                     }
                     cur_dff.dff_in_ports = cur_dff_in_ports;

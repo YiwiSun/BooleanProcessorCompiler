@@ -147,16 +147,15 @@ struct vcdscope
 // LutType: structure of Look-up table
 typedef struct
 {
-    unsigned long long num;
-    vector<std::string> in_ports;
-    std::string out_ports;
-    std::string lut_res;
+    unsigned long long      num;
+    vector<std::string>     in_ports;
+    std::string             out_ports;
+    std::string             lut_res;
 
-    pair<int, int> node_addr; 
-    int res_pos_at_mem;
+    pair<int, int>          node_addr; 
 
     vector<int>             in_net_from_type;       // 0: input from LUTs; 1: input from DFFs; 2: input from PinbitValues; 3: input from Initials
-    vector<int>             in_net_from_id;         // ID of LUTs/DFFs; Value of PinbitValues/Initials
+    vector<int>             in_net_from_id;         // ID of LUTs/DFFs; Value of PinbitValues/Initials (-1: Value_1; -2: Value_0)
     vector<string>          in_net_from_info;       // blank of LUTs/DFFs; INFO of PinbitValues/Initials
     vector<int>             in_net_from_part;       // Part of LUTs/DFFs (-3 if the same part); -1 if PinbitValues/Initials
     vector<pair<int, int>>  in_net_from_addr;       // pair<int, int> (type of input from, address of MEM)
@@ -167,15 +166,15 @@ typedef struct
 // DffType: structure of Flip-flops
 typedef struct
 {
-    unsigned long long num;
-    int type;                                                       // 0: unconditional judgment; 1: if; 2: if...else...; 3: if...else if...
-    vector<pair<string, string>> sens_edge;                         // <sensitive signals, edge>
-    vector<pair<string, pair<string, int>>> assignsig_condsig;      // <assignment signal, <condition signal, condition>>
-    vector<string> dff_in_ports;
-    string dff_out;
+    unsigned long long      num;
+    int                     type;                                           // 0: unconditional judgment; 1: if; 2: if...else...; 3: if...else if...; 4: if...if...else...
+    vector<pair<string, string>> sens_edge;                                 // <sensitive signals, edge>
+    vector<pair<string, vector<pair<string, int>>>> assignsig_condsig;      // <assignment signal, <condition signal, condition>>
+    vector<string>          dff_in_ports;
+    string                  dff_out;
 
-    pair<int, int> node_addr; 
-    int res_pos_at_mem;
+    pair<int, int>          node_addr; 
+    int                     FF_Datamem_Addr;
 
     vector<int>             in_net_from_type;       // 0: input from LUTs; 1: input from DFFs; 2: input from PinbitValues; 3: input from Initials
     vector<int>             in_net_from_id;         // ID of LUTs/DFFs; Value of PinbitValues/Initials
