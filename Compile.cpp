@@ -141,7 +141,7 @@ int main(int argc, char const *argv[])
     cout << "7. Executing instruction generation." << endl;
     auto start_ins = std::chrono::steady_clock::now();
 
-    // vector<vector<Instr>> tt_instr_mem = InstrGen(SchList, luts, dffs);
+    vector<vector<Instr>> tt_instr_mem = InstrGen(SchList, luts, dffs);
 
     auto end_ins = std::chrono::steady_clock::now();
     long duration_ins = std::chrono::duration_cast<std::chrono::milliseconds>(end_ins - start_ins).count();
@@ -154,7 +154,7 @@ int main(int argc, char const *argv[])
     std::cout << "8. Executing output files generation." << endl;
     auto start_out = std::chrono::steady_clock::now();
 
-    // COEGen(instr_out, out_dir, tt_instr_mem, luts, dffs, pin_bits, assign_pairs);
+    COEGen(instr_out, out_dir, tt_instr_mem, luts, dffs, pin_bits, assign_pairs);
 
     auto end_out = std::chrono::steady_clock::now();
     long duration_out = std::chrono::duration_cast<std::chrono::milliseconds>(end_out - start_out).count();

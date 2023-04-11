@@ -148,9 +148,9 @@ struct vcdscope
 typedef struct
 {
     unsigned long long      num;
-    vector<std::string>     in_ports;
-    std::string             out_ports;
-    std::string             lut_res;
+    vector<string>          in_ports;
+    string                  out_ports;
+    string                  lut_res;
 
     pair<int, int>          node_addr; 
 

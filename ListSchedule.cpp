@@ -36,6 +36,7 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
     vector<int> CPN;                // Critical Path Nodes
     int CL = levels_ASAP.size();    // Critical Length
     vector<vector<int>> SchList(CL, vector<int> ());
+    vector<vector<int>> nodes_in_per_bp(N_PROCESSORS, vector<int>());
     for (auto i = levels_ASAP.begin(); i != levels_ASAP.end(); i++)
     {
         for (auto j = i->begin(); j != i->end(); j++)
@@ -77,7 +78,7 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
             {
                 if (find(CPN.begin(), CPN.end(), v.first) != CPN.end())
                 {
-                    int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, 0, 1, luts, dffs, BPSch, part);
+                    int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, 0, 1, luts, dffs, BPSch, part, nodes_in_per_bp);
                     ToSch.erase(remove(ToSch.begin(), ToSch.end(), v.first), ToSch.end());
                     if (OK)
                     {
@@ -87,7 +88,7 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
                 }
                 else if (v.second == 0)
                 {
-                    int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, 0, 1, luts, dffs, BPSch, part);
+                    int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, 0, 1, luts, dffs, BPSch, part, nodes_in_per_bp);
                     ToSch.erase(remove(ToSch.begin(), ToSch.end(), v.first), ToSch.end());
                     if (OK)
                     {
@@ -102,7 +103,7 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
             int maxcycle = *max_element(Max_Cycle.begin(), Max_Cycle.end());
             for (auto v : Vertex_Fanout)
             {
-                int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, maxcycle, 0, luts, dffs, BPSch, part);
+                int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, maxcycle, 0, luts, dffs, BPSch, part, nodes_in_per_bp);
                 ToSch.erase(remove(ToSch.begin(), ToSch.end(), v.first), ToSch.end());
                 if (OK)
                 {
@@ -133,7 +134,8 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
     return SchList;
 }
 
-int ListSch::allocate_and_collapse_IMM(int &v, vector<int> &Max_Cycle, const int &maxcycle, const int &type, map<int, LutType> &luts, map<int, DffType> &dffs, vector<int> &BPSch, vector<idx_t> &part)
+int ListSch::allocate_and_collapse_IMM(int &v, vector<int> &Max_Cycle, const int &maxcycle, const int &type,
+                                       map<int, LutType> &luts, map<int, DffType> &dffs, vector<int> &BPSch, vector<idx_t> &part, vector<vector<int>> &nodes_in_per_bp)
 {
     int cur_part = part[v];
     int cur_BP = BPSch[cur_part];

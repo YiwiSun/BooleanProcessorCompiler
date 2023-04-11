@@ -10,6 +10,7 @@
 #include <cassert>
 
 #include "parser.h"
+#include "InstrGen.h"
 
 using namespace std;
 
