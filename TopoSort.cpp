@@ -54,7 +54,7 @@ vector<vector<int>> topoSortASAP(int n, vector<vector<int>> &edges)
     cout << "levels size (ASAP): " << res.size() << endl;
     for (auto l = res.begin(); l != res.end(); l++)
     {
-        cout << "[level " << distance(res.begin(), l) << "]: " << endl;
+        cout << "[level " << distance(res.begin(), l) << "]" << endl;
         for (auto i = l->begin(); i != l->end(); i++)
         {
             cout << *i << " ";

@@ -154,14 +154,12 @@ int ListSch::allocate_and_collapse_IMM(int &v, vector<int> &Max_Cycle, const int
     }
     if (v < luts.size())
     {
-        LutType cur_lut = luts[v];
-        cur_lut.node_addr = make_pair(cur_part, cur_BP);
+        luts[v].node_addr = make_pair(cur_part, cur_BP);
         nodes_in_per_bp[cur_part * N_PROCESSORS_PER_CLUSTER + cur_BP].push_back(v);
     }
     else
     {
-        DffType cur_dff = dffs[v - luts.size()];
-        cur_dff.node_addr = make_pair(cur_part, cur_BP);
+        dffs[v - luts.size()].node_addr = make_pair(cur_part, cur_BP);
         nodes_in_per_bp[cur_part * N_PROCESSORS_PER_CLUSTER + cur_BP].push_back(v);
     }
     return 1;

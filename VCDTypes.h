@@ -153,6 +153,7 @@ typedef struct
     string                  lut_res;
 
     pair<int, int>          node_addr; 
+    int                     res_pos_at_mem;
 
     vector<int>             in_net_from_type;       // 0: input from LUTs; 1: input from DFFs; 2: input from PinbitValues; 3: input from Initials
     vector<int>             in_net_from_id;         // ID of LUTs/DFFs; Value of PinbitValues/Initials (-1: Value_1; -2: Value_0)
@@ -175,6 +176,7 @@ typedef struct
 
     pair<int, int>          node_addr; 
     int                     FF_Datamem_Addr;
+    int                     res_pos_at_mem;
 
     vector<int>             in_net_from_type;       // 0: input from LUTs; 1: input from DFFs; 2: input from PinbitValues; 3: input from Initials
     vector<int>             in_net_from_id;         // ID of LUTs/DFFs; Value of PinbitValues/Initials

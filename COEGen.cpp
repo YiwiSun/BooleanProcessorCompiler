@@ -8,36 +8,35 @@
 #include "COEGen.h"
 #include "Compile.h"
 
-void COEGen(string &instr_out, string &out_dir, map<int, Processor> &processors,
+void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_dir,
             map<int, LutType> &luts, map<int, DffType> &dffs, map<string, string> &pin_bits, map<string, string> &assign_pairs)
 {
-    for (auto it = processors.begin(); it != processors.end(); it++)
+    for (auto it = tt_instr_mem.begin(); it != tt_instr_mem.end(); it++)
     {
-        auto i = it->first;
+        auto i = distance(tt_instr_mem.begin(), it);
         int cluster_num = (i / N_PROCESSORS_PER_CLUSTER) + 1;
-        int bp_num = (i % N_PROCESSORS_PER_CLUSTER) + 1;
+        int bp_num      = (i % N_PROCESSORS_PER_CLUSTER) + 1;
         string cur_instr_out = instr_out + "instrmem_" + to_string(cluster_num) + "_" + to_string(bp_num) + ".coe";
         ofstream outinstr(cur_instr_out);
         outinstr << "MEMORY_INITIALIZATION_RADIX = " << MEMORY_INITIALIZATION_RADIX << ";" << endl;
         outinstr << "MEMORY_INITIALIZATION_VECTOR =" << endl;
-        vector<string> instrs = it->second.instr_mem;
-        assert(instrs.size() < N_INS_PER_PROCESSOR);
-        for (vector<string>::iterator iter = instrs.begin(); iter != instrs.end(); iter++)
+        for (auto iter = it->begin(); iter != it->end(); iter++)
         {
-            if (iter == instrs.end() - 1)
-                outinstr << *iter << ";" << endl;
+            auto cat_instr = InstrCat(*iter);
+            if (iter == it->end() - 1)
+                outinstr << cat_instr << ";" << endl;
             else
-                outinstr << *iter << "," << endl;
+                outinstr << cat_instr << "," << endl;
         }
         outinstr.close();
     }
 
     ofstream outdir(out_dir);
-    for (map<string, string>::iterator i = pin_bits.begin(); i != pin_bits.end(); i++)
+    for (auto i = pin_bits.begin(); i != pin_bits.end(); i++)
     {
         if (i->second == "output")
         {
-            for (map<int, LutType>::iterator it = luts.begin(); it != luts.end(); it++)
+            for (auto it = luts.begin(); it != luts.end(); it++)
             {
                 if (it->second.out_ports == i->first)
                 {
@@ -47,9 +46,9 @@ void COEGen(string &instr_out, string &out_dir, map<int, Processor> &processors,
                     outdir << "LUT: ";
                     outdir << setw(10) << it->first;
                     outdir << "Clutser: ";
-                    outdir << setw(10) << it->second.node_addr[0];
+                    outdir << setw(10) << it->second.node_addr.first;
                     outdir << "Processor: ";
-                    outdir << setw(10) << it->second.node_addr[1];
+                    outdir << setw(10) << it->second.node_addr.second;
                     outdir << "Addr: ";
                     outdir << setw(10) << it->second.res_pos_at_mem << endl;
                 }
@@ -64,9 +63,9 @@ void COEGen(string &instr_out, string &out_dir, map<int, Processor> &processors,
                     outdir << "DFF: ";
                     outdir << setw(10) << it->first;
                     outdir << "Clutser: ";
-                    outdir << setw(10) << it->second.node_addr[0];
+                    outdir << setw(10) << it->second.node_addr.first;
                     outdir << "Processor: ";
-                    outdir << setw(10) << it->second.node_addr[1];
+                    outdir << setw(10) << it->second.node_addr.second;
                     outdir << "Addr: ";
                     outdir << setw(10) << it->second.res_pos_at_mem << endl;
                 }
@@ -84,9 +83,9 @@ void COEGen(string &instr_out, string &out_dir, map<int, Processor> &processors,
                         outdir << "LUT: ";
                         outdir << setw(10) << it->first;
                         outdir << "Clutser: ";
-                        outdir << setw(10) << it->second.node_addr[0];
+                        outdir << setw(10) << it->second.node_addr.first;
                         outdir << "Processor: ";
-                        outdir << setw(10) << it->second.node_addr[1];
+                        outdir << setw(10) << it->second.node_addr.second;
                         outdir << "Addr: ";
                         outdir << setw(10) << it->second.res_pos_at_mem << endl;
                     }
@@ -101,9 +100,9 @@ void COEGen(string &instr_out, string &out_dir, map<int, Processor> &processors,
                         outdir << "DFF: ";
                         outdir << setw(10) << it->first;
                         outdir << "Clutser: ";
-                        outdir << setw(10) << it->second.node_addr[0];
+                        outdir << setw(10) << it->second.node_addr.first;
                         outdir << "Processor: ";
-                        outdir << setw(10) << it->second.node_addr[1];
+                        outdir << setw(10) << it->second.node_addr.second;
                         outdir << "Addr: ";
                         outdir << setw(10) << it->second.res_pos_at_mem << endl;
                     }
@@ -114,21 +113,20 @@ void COEGen(string &instr_out, string &out_dir, map<int, Processor> &processors,
     outdir.close();
 }
 
-string InstrCat(Instr &instr);
+string InstrCat(Instr &instr)
 {
-    string LUT_Value = HextoBinary(instr_1.LUT_Value);
-    int cur_node_addr = instr_1.Node_Addr[0] * N_PROCESSORS_PER_CLUSTER + instr_1.Node_Addr[1];
-    int filling_num = 4 - instr_1.Operand_Addr.size();
-    for (int i = 0; i < filling_num; i++)
-    {
-        instr_1.Operand_Addr.insert(instr_1.Operand_Addr.begin(), MEM_DEPTH - 1);
-    }
-    string cat_instr_1;
+    string value_data;
+    for (auto i = instr.Value_Data.begin(); i != instr.Value_Data.end(); i++)
+        {value_data.append(to_string(*i));}
+    string cat_instr;
     stringstream ss;
-    ss << "0000" << instr_1.PC_Jump << instr_1.BM_Jump << string(9, '0') << bitset<8>(toBinary(cur_node_addr)) << "0" << bitset<16>(LUT_Value) << bitset<4>(instr_1.Data_Mem_Select)
-       << bitset<9>(toBinary(instr_1.Operand_Addr[0])) << bitset<9>(toBinary(instr_1.Operand_Addr[1])) << bitset<9>(toBinary(instr_1.Operand_Addr[2])) << bitset<9>(toBinary(instr_1.Operand_Addr[3]));
-    cat_instr_1 = ss.str();
-    return cat_instr_1;
+    ss << bitset<4>(to_string(instr.Opcode)) << bitset<2>(to_string(instr.Jump))
+       << bitset<8>(toBinary(instr.Node_Addr[0])) << bitset<8>(toBinary(instr.Node_Addr[1])) << bitset<8>(toBinary(instr.Node_Addr[2])) << bitset<8>(toBinary(instr.Node_Addr[3]))
+       << bitset<17>(value_data)
+       << bitset<3>(to_string(instr.Datamem_Sel[0])) << bitset<3>(to_string(instr.Datamem_Sel[1])) << bitset<3>(to_string(instr.Datamem_Sel[2])) << bitset<3>(to_string(instr.Datamem_Sel[3]))
+       << bitset<9>(toBinary(instr.Operand_Addr[0])) << bitset<9>(toBinary(instr.Operand_Addr[1])) << bitset<9>(toBinary(instr.Operand_Addr[2])) << bitset<9>(toBinary(instr.Operand_Addr[3]));
+    cat_instr = ss.str();
+    return cat_instr;
 }
 
 string toBinary(int n)

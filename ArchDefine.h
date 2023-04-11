@@ -22,7 +22,7 @@
 
 #define INS_DEPTH                   512
 #define MEM_DEPTH                   512
-#define N_LUTS_PER_PROCESSOR        100
+#define N_LUTS_PER_PROCESSOR        50
 
 #define MEMORY_INITIALIZATION_RADIX 2
 

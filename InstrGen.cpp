@@ -149,6 +149,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 }
                 tt_instr_mem[tt_instr_mem_index][pushaddr] = new_instr;
                 tt_instr_mem_cnt[tt_instr_mem_index] = pushaddr + 1;
+                luts[node_num].res_pos_at_mem = pushaddr;
 
                 auto cur_node_for_id = net_for_id[cur_lut.out_ports];
                 for (auto i = cur_node_for_id.begin(); i != cur_node_for_id.end(); i++)
@@ -479,6 +480,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 }
                 tt_instr_mem[tt_instr_mem_index][pushaddr] = new_instr;
                 tt_instr_mem_cnt[tt_instr_mem_index] = pushaddr + 1;
+                dffs[node_num - luts.size()].res_pos_at_mem = pushaddr;
            }
         }
     }
