@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <vector>
 #include <queue>
+#include <bitset>
+#include <bits/stdc++.h>
 
 #include "TopoSort.h"
 #include "VCDTypes.h"
@@ -54,15 +56,28 @@ vector<vector<int>> topoSortASAP(int n, vector<vector<int>> &edges)
     cout << "levels size (ASAP): " << res.size() << endl;
     for (auto l = res.begin(); l != res.end(); l++)
     {
-        cout << "[level " << distance(res.begin(), l) << "]" << endl;
+        cout << "[Level " << distance(res.begin(), l) << "]" << endl;
         for (auto i = l->begin(); i != l->end(); i++)
         {
-            cout << *i << " ";
+            cout << setw(5) << * i;
         }
         cout << endl;
     }
     cout << endl;
-    
+    for (auto test = res.begin(); test != res.end(); test++)
+    {
+        auto iter = find(test->begin(), test->end(), 1352);
+        if (iter != test->end())
+            {cout << "1352(ASAP): " << distance(res.begin(), test) << endl;}
+        auto iter_1 = find(test->begin(), test->end(), 1010);
+        if (iter_1 != test->end())
+            {cout << "1010(ASAP): " << distance(res.begin(), test) << endl;}
+        auto iter_2 = find(test->begin(), test->end(), 5);
+        if (iter_2 != test->end())
+            {cout << "5(ASAP): " << distance(res.begin(), test) << endl;}
+    }
+
+
     return res;
 }
 
@@ -104,14 +119,26 @@ vector<vector<int>> topoSortALAP(int n, vector<vector<int>> &edges)
     cout << "levels size (ALAP): " << res.size() << endl;
     for (auto l = res.begin(); l != res.end(); l++)
     {
-        cout << "[level " << distance(res.begin(), l) << "]: " << endl;
+        cout << "[Level " << distance(res.begin(), l) << "] " << endl;
         for (auto i = l->begin(); i != l->end(); i++)
         {
-            cout << *i << " ";
+            cout << setw(5) << * i;
         }
         cout << endl;
     }
     cout << endl;
+    for (auto test = res.begin(); test != res.end(); test++)
+    {
+        auto iter = find(test->begin(), test->end(), 1352);
+        if (iter != test->end())
+            {cout << "1352(ALAP): " << distance(res.begin(), test) << endl;}
+        auto iter_1 = find(test->begin(), test->end(), 1010);
+        if (iter_1 != test->end())
+            {cout << "1010(ALAP): " << distance(res.begin(), test) << endl;}
+        auto iter_2 = find(test->begin(), test->end(), 5);
+        if (iter_2 != test->end())
+            {cout << "5(ALAP): " << distance(res.begin(), test) << endl;}
+    }
 
     return res;
 }

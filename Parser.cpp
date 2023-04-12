@@ -1475,7 +1475,7 @@ void Parser::parse_v(std::string& v_path){
                     net_from_id_dff[cur_dff.dff_out] = cur_dff.num;
                     for (int i = 0; i < cur_dff_in_ports.size(); i++)
                     {
-                        net_for_id_dff[cur_dff_in_ports[i]].push_back(cur_dff.num);
+                        net_for_id[cur_dff_in_ports[i]].push_back(cur_dff.num + luts.size());
                     }
                 }
 

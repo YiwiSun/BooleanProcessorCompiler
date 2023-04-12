@@ -11,7 +11,7 @@
 using namespace std;
 
 vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &luts, map<int, DffType> &dffs,
-                               map<string, vector<int>> &net_for_id, map<string, vector<int>> &net_for_id_dff)
+                               map<string, vector<int>> &net_for_id)
 {
 
     vector<vector<Instr>> tt_instr_mem(N_PROCESSORS, vector<Instr>(INS_DEPTH));
@@ -25,10 +25,10 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
         auto tt_instr_mem_index = cur_node_addr.first * N_PROCESSORS_PER_CLUSTER + cur_node_addr.second;
         auto cur_instr_mem_cnt  = tt_instr_mem_cnt[tt_instr_mem_index];
         Instr new_instr;
-        new_instr.Opcode = STATIC_CONFIG;
-        new_instr.Jump   = 00;
-        new_instr.Datamem_Sel.push_back(FF_Datamem);
-        new_instr.Operand_Addr.push_back(dffs[n_dff].FF_Datamem_Addr);
+        new_instr.Opcode = MEM_ACCESS;
+        new_instr.Jump   = {0, 0};
+        new_instr.Datamem_Sel = {0, 0, 0, FF_Datamem};
+        new_instr.Operand_Addr = {0, 0, 0, dffs[n_dff].FF_Datamem_Addr};
         tt_instr_mem[tt_instr_mem_index][cur_instr_mem_cnt] = new_instr;
         tt_instr_mem_cnt[tt_instr_mem_index] += 1;
 
@@ -133,10 +133,9 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 int cur_instr_mem_cnt  = tt_instr_mem_cnt[tt_instr_mem_index];
                 int pushaddr = cur_instr_mem_cnt;
                 Instr new_instr;
-                string lut_res_binary = HextoBinary(cur_lut.lut_res);
                 new_instr.Opcode      = LUT_CONFIG;
-                new_instr.Jump        = 00;
-                new_instr.Value_Data.push_back(stoi(lut_res_binary));
+                new_instr.Jump        = {0, 0};
+                new_instr.Value_Data.push_back(stoi(cur_lut.lut_res, nullptr, 16));
                 for (auto i = cur_lut.in_net_from_addr.begin(); i != cur_lut.in_net_from_addr.end(); i++)
                 {
                     new_instr.Datamem_Sel.push_back(i->first);
@@ -146,6 +145,16 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                     new_instr.Operand_Addr.push_back(i->second);
                     if (i->second != MEM_DEPTH - 1 && i->second >= cur_instr_mem_cnt)
                         pushaddr = ((i->second + 1) > pushaddr) ? i->second + 1 : pushaddr;
+                }
+                if (new_instr.Datamem_Sel.size() < LUT_Size)
+                {
+                    for (auto add = 0; add < LUT_Size - new_instr.Datamem_Sel.size(); add++)
+                        {new_instr.Datamem_Sel.push_back(0);}
+                }
+                if (new_instr.Operand_Addr.size() < LUT_Size)
+                {
+                    for (auto add = 0; add < LUT_Size - new_instr.Operand_Addr.size(); add++)
+                        {new_instr.Operand_Addr.push_back(0);}
                 }
                 tt_instr_mem[tt_instr_mem_index][pushaddr] = new_instr;
                 tt_instr_mem_cnt[tt_instr_mem_index] = pushaddr + 1;
@@ -247,7 +256,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 auto assignsig_condsig = cur_dff.assignsig_condsig;
                 Instr new_instr;
                 new_instr.Opcode = FF_CONFIG;
-                new_instr.Jump = 00;
+                new_instr.Jump   = {0, 0};
                 if (cur_dff.type == 0)
                 {
                     if (assignsig_condsig[0].first == "0" || assignsig_condsig[0].first == "1")
@@ -488,7 +497,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
     // Instruction for Jumping
     Instr new_instr;
     new_instr.Opcode = STATIC_CONFIG;
-    new_instr.Jump   = 10;
+    new_instr.Jump   = {1, 0};
     new_instr.Value_Data.push_back(1);
     new_instr.Datamem_Sel  = {0, 0, 0, 0};
     new_instr.Operand_Addr = {0, 0, 0, 0};
@@ -520,76 +529,4 @@ int Sel_Exter_Datamem(int &n)
         return Exter_Datamem_0;
         break;
     }
-}
-
-string HextoBinary(string HexDigit)
-{
-    string BinDigit;
-    for (int i = 0; i < HexDigit.length(); i++)
-    {
-        char e = HexDigit[i];
-        if (e >= 'a' && e <= 'f')
-        {
-           int a = static_cast<int>(e - 'a' + 10);
-           switch (a)
-           {
-           case 10:
-                BinDigit += "1010";
-                break;
-           case 11:
-                BinDigit += "1011";
-                break;
-           case 12:
-                BinDigit += "1100";
-                break;
-           case 13:
-                BinDigit += "1101";
-                break;
-           case 14:
-                BinDigit += "1110";
-                break;
-           case 15:
-                BinDigit += "1111";
-                break;
-           }
-        }
-        else if (isdigit(e))
-        {
-           int b = static_cast<int>(e - '0');
-           switch (b)
-           {
-           case 0:
-                BinDigit += "0000";
-                break;
-           case 1:
-                BinDigit += "0001";
-                break;
-           case 2:
-                BinDigit += "0010";
-                break;
-           case 3:
-                BinDigit += "0011";
-                break;
-           case 4:
-                BinDigit += "0100";
-                break;
-           case 5:
-                BinDigit += "0101";
-                break;
-           case 6:
-                BinDigit += "0110";
-                break;
-           case 7:
-                BinDigit += "0111";
-                break;
-           case 8:
-                BinDigit += "1000";
-                break;
-           case 9:
-                BinDigit += "1001";
-                break;
-           }
-        }
-    }
-    return BinDigit;
 }

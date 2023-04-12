@@ -57,7 +57,6 @@ int main(int argc, char const *argv[])
     map<string, string> assign_pairs = _parser.get_assign_pairs();
     map<string, vector<int>> net_for_id = _parser.net_for_id;
     map<string, int> net_from_id = _parser.net_from_id;
-    map<string, vector<int>> net_for_id_dff = _parser.net_for_id_dff;
     map<string, int> net_from_id_dff = _parser.net_from_id_dff;
 
     /****************************************************************************************************/
@@ -141,7 +140,7 @@ int main(int argc, char const *argv[])
     cout << "7. Executing instruction generation." << endl;
     auto start_ins = std::chrono::steady_clock::now();
 
-    vector<vector<Instr>> tt_instr_mem = InstrGen(SchList, luts, dffs, net_for_id, net_for_id_dff);
+    vector<vector<Instr>> tt_instr_mem = InstrGen(SchList, luts, dffs, net_for_id);
 
     auto end_ins = std::chrono::steady_clock::now();
     long duration_ins = std::chrono::duration_cast<std::chrono::milliseconds>(end_ins - start_ins).count();

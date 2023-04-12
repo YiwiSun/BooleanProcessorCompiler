@@ -70,7 +70,7 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
         for (auto v : ToSch) { Vertex_MOB.push_back(make_pair(v, node_level_ALAP[v] - level)); }
         sort(Vertex_MOB.begin(), Vertex_MOB.end(), [](const pair<int, int> &a, const pair<int, int> &b)
              { return a.second < b.second; });
-        vector<int> Max_Cycle(nParts, 0);
+        vector<int> Max_Cycle(nParts, 0); 
         vector<int> BPSch(nParts, 0);
         while (!ToSch.empty())
         {
@@ -78,7 +78,7 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
             {
                 if (find(CPN.begin(), CPN.end(), v.first) != CPN.end())
                 {
-                    int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, 0, 1, luts, dffs, BPSch, part, nodes_in_per_bp);
+                    int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, 0, 1, done, SchList, level, luts, dffs, BPSch, part, nodes_in_per_bp);
                     ToSch.erase(remove(ToSch.begin(), ToSch.end(), v.first), ToSch.end());
                     if (OK)
                     {
@@ -88,7 +88,7 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
                 }
                 else if (v.second == 0)
                 {
-                    int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, 0, 1, luts, dffs, BPSch, part, nodes_in_per_bp);
+                    int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, 0, 1, done, SchList, level, luts, dffs, BPSch, part, nodes_in_per_bp);
                     ToSch.erase(remove(ToSch.begin(), ToSch.end(), v.first), ToSch.end());
                     if (OK)
                     {
@@ -103,7 +103,7 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
             int maxcycle = *max_element(Max_Cycle.begin(), Max_Cycle.end());
             for (auto v : Vertex_Fanout)
             {
-                int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, maxcycle, 0, luts, dffs, BPSch, part, nodes_in_per_bp);
+                int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, maxcycle, 0, done, SchList, level, luts, dffs, BPSch, part, nodes_in_per_bp);
                 ToSch.erase(remove(ToSch.begin(), ToSch.end(), v.first), ToSch.end());
                 if (OK)
                 {
@@ -122,19 +122,34 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
     // debug
     for (auto iter = nodes_in_per_bp.begin(); iter != nodes_in_per_bp.end(); iter++)
     {
-        cout << "[Processor " << distance(nodes_in_per_bp.begin(), iter) << "]" << endl;
-        for (auto node = iter->begin(); node != iter->end(); node++)
+        if (!(*iter).empty())
         {
-            cout << setw(7) << *node << " ";
+            cout << "[Processor " << distance(nodes_in_per_bp.begin(), iter) << "]" << endl;
+            for (auto node = iter->begin(); node != iter->end(); node++)
+            {
+                cout << setw(5) << *node;
+            }
+            cout << endl;
         }
-        cout << endl;
+    }
+    for (auto test = SchList.begin(); test != SchList.end(); test++)
+    {
+        auto iter = find(test->begin(), test->end(), 1352);
+        if (iter != test->end())
+            {cout << "1352: " << distance(SchList.begin(), test) << endl;}
+        auto iter_1 = find(test->begin(), test->end(), 1010);
+        if (iter_1 != test->end())
+            {cout << "1010: " << distance(SchList.begin(), test) << endl;}
+        auto iter_2 = find(test->begin(), test->end(), 5);
+        if (iter_2 != test->end())
+            {cout << "5: " << distance(SchList.begin(), test) << endl;}
     }
 
     FF_allocate(nodes_in_per_bp, luts, dffs);
     return SchList;
 }
 
-int ListSch::allocate_and_collapse_IMM(int &v, vector<int> &Max_Cycle, const int &maxcycle, const int &type,
+int ListSch::allocate_and_collapse_IMM(int &v, vector<int> &Max_Cycle, const int &maxcycle, const int &type, vector<int> &done, vector<vector<int>> &SchList, int &level,
                                        map<int, LutType> &luts, map<int, DffType> &dffs, vector<int> &BPSch, vector<idx_t> &part, vector<vector<int>> &nodes_in_per_bp)
 {
     int cur_part = part[v];
@@ -154,11 +169,29 @@ int ListSch::allocate_and_collapse_IMM(int &v, vector<int> &Max_Cycle, const int
     }
     if (v < luts.size())
     {
+        for (int i = 0; i < luts[v].in_net_from_type.size(); i++)
+        {
+            if (luts[v].in_net_from_type[i] == 0)
+            {
+                auto iter = find(SchList[level].begin(), SchList[level].end(), luts[v].in_net_from_id[i]);
+                if (!done[luts[v].in_net_from_id[i]] || iter != SchList[level].end())
+                    {return 0;}
+            }
+        }
         luts[v].node_addr = make_pair(cur_part, cur_BP);
         nodes_in_per_bp[cur_part * N_PROCESSORS_PER_CLUSTER + cur_BP].push_back(v);
     }
     else
     {
+        for (int i = 0; i < dffs[v - luts.size()].in_net_from_type.size(); i++)
+        {
+            if (dffs[v - luts.size()].in_net_from_type[i] == 0)
+            {
+                auto iter = find(SchList[level].begin(), SchList[level].end(), dffs[v - luts.size()].in_net_from_id[i]);
+                if (!done[dffs[v - luts.size()].in_net_from_id[i]] || iter != SchList[level].end())
+                    {return 0;}
+            }
+        }
         dffs[v - luts.size()].node_addr = make_pair(cur_part, cur_BP);
         nodes_in_per_bp[cur_part * N_PROCESSORS_PER_CLUSTER + cur_BP].push_back(v);
     }
@@ -169,13 +202,16 @@ void ListSch::FF_allocate(vector<vector<int>> &nodes_in_per_bp, map<int, LutType
 {
     for (auto iter = nodes_in_per_bp.begin(); iter != nodes_in_per_bp.end(); iter++)
     {
-        int addr {0};
-        for (auto node = iter->begin(); node != iter->end(); iter++)
+        if (!(*iter).empty())
         {
-            if (*node > luts.size())
+            int addr {0};
+            for (auto node = iter->begin(); node != iter->end(); node++)
             {
-                dffs[*node - luts.size()].FF_Datamem_Addr = addr;
-                addr++;
+                if (*node > luts.size())
+                {
+                    dffs[*node - luts.size()].FF_Datamem_Addr = addr;
+                    addr++;
+                }
             }
         }
     }

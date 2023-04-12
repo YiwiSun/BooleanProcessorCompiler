@@ -117,13 +117,13 @@ string InstrCat(Instr &instr)
 {
     string value_data;
     for (auto i = instr.Value_Data.begin(); i != instr.Value_Data.end(); i++)
-        {value_data.append(to_string(*i));}
+        {value_data.append(toBinary(*i));}
     string cat_instr;
     stringstream ss;
-    ss << bitset<4>(to_string(instr.Opcode)) << bitset<2>(to_string(instr.Jump))
+    ss << bitset<4>(toBinary(instr.Opcode)) << instr.Jump[0] << instr.Jump[1]
        << bitset<8>(toBinary(instr.Node_Addr[0])) << bitset<8>(toBinary(instr.Node_Addr[1])) << bitset<8>(toBinary(instr.Node_Addr[2])) << bitset<8>(toBinary(instr.Node_Addr[3]))
        << bitset<17>(value_data)
-       << bitset<3>(to_string(instr.Datamem_Sel[0])) << bitset<3>(to_string(instr.Datamem_Sel[1])) << bitset<3>(to_string(instr.Datamem_Sel[2])) << bitset<3>(to_string(instr.Datamem_Sel[3]))
+       << bitset<3>(toBinary(instr.Datamem_Sel[0])) << bitset<3>(toBinary(instr.Datamem_Sel[1])) << bitset<3>(toBinary(instr.Datamem_Sel[2])) << bitset<3>(toBinary(instr.Datamem_Sel[3]))
        << bitset<9>(toBinary(instr.Operand_Addr[0])) << bitset<9>(toBinary(instr.Operand_Addr[1])) << bitset<9>(toBinary(instr.Operand_Addr[2])) << bitset<9>(toBinary(instr.Operand_Addr[3]));
     cat_instr = ss.str();
     return cat_instr;
