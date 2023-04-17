@@ -116,11 +116,26 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
 string InstrCat(Instr &instr)
 {
     string value_data;
-    for (auto i = instr.Value_Data.begin(); i != instr.Value_Data.end(); i++)
-        {value_data.append(toBinary(*i));}
     string cat_instr;
     stringstream ss;
-    ss << bitset<4>(toBinary(instr.Opcode)) << instr.Jump[0] << instr.Jump[1]
+    int node_addr_size    = instr.Node_Addr.size();
+    int datamem_sel_size  = instr.Datamem_Sel.size();
+    int operand_addr_size = instr.Operand_Addr.size();
+    for (auto i = instr.Value_Data.begin(); i != instr.Value_Data.end(); i++)
+        {value_data.append(toBinary(*i));}
+    if (instr.Jump.empty())
+        {instr.Jump = {0, 0};}
+    if (node_addr_size < Fetch_Data_Size)
+        {for (auto add = 0; add < Fetch_Data_Size - node_addr_size; add++)
+            {instr.Node_Addr.push_back(0);}}
+    if (datamem_sel_size < LUT_Size)
+        {for (auto add = 0; add < LUT_Size - datamem_sel_size; add++)
+            {instr.Datamem_Sel.push_back(0);}}
+    if (operand_addr_size < LUT_Size)
+        {for (auto add = 0; add < LUT_Size - operand_addr_size; add++)
+            {instr.Operand_Addr.push_back(0);}}
+    ss << bitset<4>(toBinary(instr.Opcode))
+       << instr.Jump[0] << instr.Jump[1]
        << bitset<8>(toBinary(instr.Node_Addr[0])) << bitset<8>(toBinary(instr.Node_Addr[1])) << bitset<8>(toBinary(instr.Node_Addr[2])) << bitset<8>(toBinary(instr.Node_Addr[3]))
        << bitset<17>(value_data)
        << bitset<3>(toBinary(instr.Datamem_Sel[0])) << bitset<3>(toBinary(instr.Datamem_Sel[1])) << bitset<3>(toBinary(instr.Datamem_Sel[2])) << bitset<3>(toBinary(instr.Datamem_Sel[3]))

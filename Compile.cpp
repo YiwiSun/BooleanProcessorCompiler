@@ -140,7 +140,7 @@ int main(int argc, char const *argv[])
     cout << "7. Executing instruction generation." << endl;
     auto start_ins = std::chrono::steady_clock::now();
 
-    vector<vector<Instr>> tt_instr_mem = InstrGen(SchList, luts, dffs, net_for_id);
+    vector<vector<Instr>> tt_instr_mem = InstrGen(SchList, luts, dffs, net_for_id, assign_pairs);
 
     auto end_ins = std::chrono::steady_clock::now();
     long duration_ins = std::chrono::duration_cast<std::chrono::milliseconds>(end_ins - start_ins).count();

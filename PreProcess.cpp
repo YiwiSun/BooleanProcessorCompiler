@@ -6,6 +6,7 @@
 #include "ArchDefine.h"
 #include "InstrGen.h"
 #include "VCDTypes.h"
+#include "Compile.h"
 
 using namespace std;
 
@@ -132,9 +133,19 @@ void PreProcess(vector<idx_t> &part,
                         luts[n].in_net_from_info.push_back(temp);
                         luts[n].in_net_from_part.push_back(-1);
                         if (cur_val == 0)
-                            luts[n].in_net_from_addr.push_back(make_pair(Inter_Datamem, MEM_DEPTH - 1));
+                        {
+                            if (temp == INITIAL_JUMP_SIG)
+                                luts[n].in_net_from_addr.push_back(make_pair(Inter_Datamem, INITIAL_JUMP_ADDR));
+                            else
+                                luts[n].in_net_from_addr.push_back(make_pair(Inter_Datamem, MEM_DEPTH - 1));
+                        }
                         else
-                            luts[n].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, MEM_DEPTH - 1));
+                        {
+                            if (temp == INITIAL_JUMP_SIG)
+                                luts[n].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, INITIAL_JUMP_ADDR));
+                            else
+                                luts[n].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, MEM_DEPTH - 1));
+                        }
                         luts[n].in_net_from_ready.push_back(1);
                     }
                     else
@@ -152,9 +163,19 @@ void PreProcess(vector<idx_t> &part,
                     luts[n].in_net_from_info.push_back(cur_in);
                     luts[n].in_net_from_part.push_back(-1);
                     if (cur_val == 0)
-                        luts[n].in_net_from_addr.push_back(make_pair(Inter_Datamem, MEM_DEPTH - 1));
+                    {
+                        if (cur_in == INITIAL_JUMP_SIG)
+                            luts[n].in_net_from_addr.push_back(make_pair(Inter_Datamem, INITIAL_JUMP_ADDR));
+                        else
+                            luts[n].in_net_from_addr.push_back(make_pair(Inter_Datamem, MEM_DEPTH - 1));
+                    }
                     else
-                        luts[n].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, MEM_DEPTH - 1));
+                    {
+                        if (cur_in == INITIAL_JUMP_SIG)
+                            luts[n].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, INITIAL_JUMP_ADDR));
+                        else
+                            luts[n].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, MEM_DEPTH - 1));
+                    }
                     luts[n].in_net_from_ready.push_back(1);
                 }
                 else
@@ -266,9 +287,19 @@ void PreProcess(vector<idx_t> &part,
                         dffs[dff_num].in_net_from_info.push_back(temp);
                         dffs[dff_num].in_net_from_part.push_back(-1);
                         if (cur_val == 0)
-                            dffs[dff_num].in_net_from_addr.push_back(make_pair(Inter_Datamem, MEM_DEPTH - 1));
+                        {
+                            if (temp == INITIAL_JUMP_SIG)
+                                dffs[dff_num].in_net_from_addr.push_back(make_pair(Inter_Datamem, INITIAL_JUMP_ADDR));
+                            else
+                                dffs[dff_num].in_net_from_addr.push_back(make_pair(Inter_Datamem, MEM_DEPTH - 1));
+                        }
                         else
-                            dffs[dff_num].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, MEM_DEPTH - 1));
+                        {
+                            if (temp == INITIAL_JUMP_SIG)
+                                dffs[dff_num].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, INITIAL_JUMP_ADDR));
+                            else
+                                dffs[dff_num].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, MEM_DEPTH - 1));
+                        }
                         dffs[dff_num].in_net_from_ready.push_back(1);
                     }
                     else
@@ -286,9 +317,19 @@ void PreProcess(vector<idx_t> &part,
                     dffs[dff_num].in_net_from_info.push_back(cur_in);
                     dffs[dff_num].in_net_from_part.push_back(-1);
                     if (cur_val == 0)
-                        dffs[dff_num].in_net_from_addr.push_back(make_pair(Inter_Datamem, MEM_DEPTH - 1));
+                    {
+                        if (cur_in == INITIAL_JUMP_SIG)
+                            dffs[dff_num].in_net_from_addr.push_back(make_pair(Inter_Datamem, INITIAL_JUMP_ADDR));
+                        else
+                            dffs[dff_num].in_net_from_addr.push_back(make_pair(Inter_Datamem, MEM_DEPTH - 1));
+                    }
                     else
-                        dffs[dff_num].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, MEM_DEPTH - 1));
+                    {
+                        if (cur_in == INITIAL_JUMP_SIG)
+                            dffs[dff_num].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, INITIAL_JUMP_ADDR));
+                        else
+                            dffs[dff_num].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, MEM_DEPTH - 1));
+                    }     
                     dffs[dff_num].in_net_from_ready.push_back(1);
                 }
                 else

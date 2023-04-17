@@ -24,6 +24,9 @@
 #define MEM_DEPTH                   512
 #define N_LUTS_PER_PROCESSOR        50
 
+#define LUT_Size                    4
+#define Fetch_Data_Size             4
+
 #define MEMORY_INITIALIZATION_RADIX 2
 
 

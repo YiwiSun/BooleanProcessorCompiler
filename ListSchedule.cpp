@@ -127,22 +127,16 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
             cout << "[Processor " << distance(nodes_in_per_bp.begin(), iter) << "]" << endl;
             for (auto node = iter->begin(); node != iter->end(); node++)
             {
-                cout << setw(5) << *node;
+                if (*node < luts.size())
+                    cout << setw(7) << *node;
+                else
+                {
+                    auto new_node = "*" + to_string(*node);
+                    cout << setw(7) << new_node;
+                }
             }
             cout << endl;
         }
-    }
-    for (auto test = SchList.begin(); test != SchList.end(); test++)
-    {
-        auto iter = find(test->begin(), test->end(), 1352);
-        if (iter != test->end())
-            {cout << "1352: " << distance(SchList.begin(), test) << endl;}
-        auto iter_1 = find(test->begin(), test->end(), 1010);
-        if (iter_1 != test->end())
-            {cout << "1010: " << distance(SchList.begin(), test) << endl;}
-        auto iter_2 = find(test->begin(), test->end(), 5);
-        if (iter_2 != test->end())
-            {cout << "5: " << distance(SchList.begin(), test) << endl;}
     }
 
     FF_allocate(nodes_in_per_bp, luts, dffs);

@@ -18,10 +18,10 @@ using namespace std;
 // ---------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define LUT_CONFIG              0b0000
+#define IDLE_MODE               0b0000
 #define MEM_ACCESS              0b0001
 #define STATIC_CONFIG           0b0010
-#define IDLE_MODE               0b0011
+#define LUT_CONFIG              0b0011
 #define FF_CONFIG               0b0100
 
 
@@ -50,8 +50,6 @@ using namespace std;
 #define Inter_Datamem           0b100
 #define FF_Datamem              0b101
 
-#define LUT_Size                4
-
    
 //! Struction of Instruction
 typedef struct
@@ -64,9 +62,8 @@ typedef struct
     vector<int> Operand_Addr;
 } Instr;
 
-
-vector<vector<Instr>>   InstrGen(vector<vector<int>> &SchList, map<int, LutType> &luts, map<int, DffType> &dffs,
-                               map<string, vector<int>> &net_for_id);
-int                     Sel_Exter_Datamem(int &n);
+vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &luts, map<int, DffType> &dffs,
+                               map<string, vector<int>> &net_for_id, map<string, string> &assign_pairs);
+int                   Sel_Exter_Datamem(int &n);
 
 #endif

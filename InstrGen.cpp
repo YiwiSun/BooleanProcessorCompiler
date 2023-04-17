@@ -7,11 +7,12 @@
 #include "InstrGen.h"
 #include "ArchDefine.h"
 #include "VCDTypes.h"
+#include "Compile.h"
 
 using namespace std;
 
 vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &luts, map<int, DffType> &dffs,
-                               map<string, vector<int>> &net_for_id)
+                               map<string, vector<int>> &net_for_id, map<string, string> &assign_pairs)
 {
 
     vector<vector<Instr>> tt_instr_mem(N_PROCESSORS, vector<Instr>(INS_DEPTH));
@@ -31,8 +32,16 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
         new_instr.Operand_Addr = {0, 0, 0, dffs[n_dff].FF_Datamem_Addr};
         tt_instr_mem[tt_instr_mem_index][cur_instr_mem_cnt] = new_instr;
         tt_instr_mem_cnt[tt_instr_mem_index] += 1;
-
+        
         auto cur_node_for_id = net_for_id[cur_dff.dff_out];
+        for (auto ap = assign_pairs.begin(); ap != assign_pairs.end(); ap++)
+        {
+            if (ap->second == cur_dff.dff_out)
+            {
+                for (auto nfi = net_for_id[ap->first].begin(); nfi != net_for_id[ap->first].end(); nfi++)
+                    cur_node_for_id.push_back(*nfi);
+            }       
+        }
         for (auto i = cur_node_for_id.begin(); i != cur_node_for_id.end(); i++)
         {
             if (*i < luts.size())
@@ -80,7 +89,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 if (for_node_addr == cur_node_addr)
                 {
                     auto iter = find(dffs[*i - luts.size()].in_net_from_id.begin(), dffs[*i - luts.size()].in_net_from_id.end(), n_dff + luts.size());
-                    dffs[*i - luts.size()].in_net_from_addr[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = make_pair(Inter_Datamem, cur_instr_mem_cnt);
+                    dffs[*i - luts.size()].in_net_from_addr[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = make_pair(FF_Datamem, dffs[n_dff].FF_Datamem_Addr);
                     dffs[*i - luts.size()].in_net_from_ready[distance(dffs[*i - luts.size()].in_net_from_id.begin(), iter)] = 1;
                 }
                 else
@@ -143,18 +152,8 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 for (auto i = cur_lut.in_net_from_addr.begin(); i != cur_lut.in_net_from_addr.end(); i++)
                 {
                     new_instr.Operand_Addr.push_back(i->second);
-                    if (i->second != MEM_DEPTH - 1 && i->second >= cur_instr_mem_cnt)
+                    if (i->second != MEM_DEPTH - 1 && i->second != INITIAL_JUMP_ADDR && i->second >= cur_instr_mem_cnt)
                         pushaddr = ((i->second + 1) > pushaddr) ? i->second + 1 : pushaddr;
-                }
-                if (new_instr.Datamem_Sel.size() < LUT_Size)
-                {
-                    for (auto add = 0; add < LUT_Size - new_instr.Datamem_Sel.size(); add++)
-                        {new_instr.Datamem_Sel.push_back(0);}
-                }
-                if (new_instr.Operand_Addr.size() < LUT_Size)
-                {
-                    for (auto add = 0; add < LUT_Size - new_instr.Operand_Addr.size(); add++)
-                        {new_instr.Operand_Addr.push_back(0);}
                 }
                 tt_instr_mem[tt_instr_mem_index][pushaddr] = new_instr;
                 tt_instr_mem_cnt[tt_instr_mem_index] = pushaddr + 1;
@@ -484,7 +483,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 }
                 for (auto i = cur_dff.in_net_from_addr.begin(); i != cur_dff.in_net_from_addr.end(); i++)
                 {
-                    if (i->second != MEM_DEPTH - 1 && i->second >= cur_instr_mem_cnt)
+                    if (i->second != MEM_DEPTH - 1 && i->second != INITIAL_JUMP_ADDR && i->second >= cur_instr_mem_cnt)
                         pushaddr = ((i->second + 1) > pushaddr) ? i->second + 1 : pushaddr;
                 }
                 tt_instr_mem[tt_instr_mem_index][pushaddr] = new_instr;
@@ -498,7 +497,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
     Instr new_instr;
     new_instr.Opcode = STATIC_CONFIG;
     new_instr.Jump   = {1, 0};
-    new_instr.Value_Data.push_back(1);
+    new_instr.Value_Data.push_back(INITIAL_STATIC_VALUE);
     new_instr.Datamem_Sel  = {0, 0, 0, 0};
     new_instr.Operand_Addr = {0, 0, 0, 0};
     auto max = *max_element(tt_instr_mem_cnt.begin(), tt_instr_mem_cnt.end());
