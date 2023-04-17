@@ -11,25 +11,50 @@
 void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_dir,
             map<int, LutType> &luts, map<int, DffType> &dffs, map<string, string> &pin_bits, map<string, string> &assign_pairs)
 {
+    // debug
+    // for (auto i = dffs.begin(); i != dffs.end(); i++)
+    // {
+    //     if (i->second.dff_out.find("cycle") != string::npos)
+    //     {
+    //         cout << i->second.dff_out << " "
+    //              << "Cluster:" << i->second.node_addr.first << " "
+    //              << "Processor:" << i->second.node_addr.second << " "
+    //              << "Addr:" << i->second.res_pos_at_mem << " "
+    //              << "Type:" << i->second.type << " "
+    //              << "Num:" << i->first << endl;
+    //     }
+    // }
+    // cout << endl;
+    // auto instr_test = tt_instr_mem[35][82];
+    // for (auto vd = instr_test.Value_Data.begin(); vd != instr_test.Value_Data.end(); vd++)
+    //     cout << "vd: " << *vd << " ";
+    // cout << endl;
+    // for (auto ds = instr_test.Datamem_Sel.begin(); ds != instr_test.Datamem_Sel.end(); ds++)
+    //     cout << "ds: " << *ds << " ";
+    // cout << endl;
+    // for (auto oa = instr_test.Operand_Addr.begin(); oa != instr_test.Operand_Addr.end(); oa++)
+    //     cout << "oa: " << *oa << " ";
+    // cout << endl;
+
     for (auto it = tt_instr_mem.begin(); it != tt_instr_mem.end(); it++)
-    {
-        auto i = distance(tt_instr_mem.begin(), it);
-        int cluster_num = (i / N_PROCESSORS_PER_CLUSTER) + 1;
-        int bp_num      = (i % N_PROCESSORS_PER_CLUSTER) + 1;
-        string cur_instr_out = instr_out + "instrmem_" + to_string(cluster_num) + "_" + to_string(bp_num) + ".coe";
-        ofstream outinstr(cur_instr_out);
-        outinstr << "MEMORY_INITIALIZATION_RADIX = " << MEMORY_INITIALIZATION_RADIX << ";" << endl;
-        outinstr << "MEMORY_INITIALIZATION_VECTOR =" << endl;
-        for (auto iter = it->begin(); iter != it->end(); iter++)
         {
-            auto cat_instr = InstrCat(*iter);
-            if (iter == it->end() - 1)
-                outinstr << cat_instr << ";" << endl;
-            else
-                outinstr << cat_instr << "," << endl;
+            auto i = distance(tt_instr_mem.begin(), it);
+            int cluster_num = (i / N_PROCESSORS_PER_CLUSTER) + 1;
+            int bp_num = (i % N_PROCESSORS_PER_CLUSTER) + 1;
+            string cur_instr_out = instr_out + "instrmem_" + to_string(cluster_num) + "_" + to_string(bp_num) + ".coe";
+            ofstream outinstr(cur_instr_out);
+            outinstr << "MEMORY_INITIALIZATION_RADIX = " << MEMORY_INITIALIZATION_RADIX << ";" << endl;
+            outinstr << "MEMORY_INITIALIZATION_VECTOR =" << endl;
+            for (auto iter = it->begin(); iter != it->end(); iter++)
+            {
+                auto cat_instr = InstrCat(*iter);
+                if (iter == it->end() - 1)
+                    outinstr << cat_instr << ";" << endl;
+                else
+                    outinstr << cat_instr << "," << endl;
+            }
+            outinstr.close();
         }
-        outinstr.close();
-    }
 
     ofstream outdir(out_dir);
     for (auto i = pin_bits.begin(); i != pin_bits.end(); i++)
@@ -111,6 +136,7 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
         }
     }
     outdir.close();
+
 }
 
 string InstrCat(Instr &instr)
@@ -147,6 +173,7 @@ string InstrCat(Instr &instr)
 string toBinary(int n)
 {
     string r;
+    if (n == 0) r = "0";
     while (n != 0)
     {
         r += (n % 2 == 0 ? "0" : "1");
