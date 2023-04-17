@@ -27,8 +27,9 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
         auto cur_instr_mem_cnt  = tt_instr_mem_cnt[tt_instr_mem_index];
         Instr new_instr;
         new_instr.Opcode = MEM_ACCESS;
-        new_instr.Jump   = {0, 0};
-        new_instr.Datamem_Sel = {0, 0, 0, FF_Datamem};
+        new_instr.Jump         = {0, 0};
+        new_instr.Node_Addr    = tt_instr_mem[tt_instr_mem_index][cur_instr_mem_cnt].Node_Addr;
+        new_instr.Datamem_Sel  = {0, 0, 0, FF_Datamem};
         new_instr.Operand_Addr = {0, 0, 0, dffs[n_dff].FF_Datamem_Addr};
         tt_instr_mem[tt_instr_mem_index][cur_instr_mem_cnt] = new_instr;
         tt_instr_mem_cnt[tt_instr_mem_index] += 1;
@@ -155,6 +156,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                     if (i->second != MEM_DEPTH - 1 && i->second != INITIAL_JUMP_ADDR && i->second >= cur_instr_mem_cnt)
                         pushaddr = ((i->second + 1) > pushaddr) ? i->second + 1 : pushaddr;
                 }
+                new_instr.Operand_Addr = tt_instr_mem[tt_instr_mem_index][pushaddr].Node_Addr;
                 tt_instr_mem[tt_instr_mem_index][pushaddr] = new_instr;
                 tt_instr_mem_cnt[tt_instr_mem_index] = pushaddr + 1;
                 luts[node_num].res_pos_at_mem = pushaddr;
@@ -486,6 +488,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                     if (i->second != MEM_DEPTH - 1 && i->second != INITIAL_JUMP_ADDR && i->second >= cur_instr_mem_cnt)
                         pushaddr = ((i->second + 1) > pushaddr) ? i->second + 1 : pushaddr;
                 }
+                new_instr.Node_Addr = tt_instr_mem[tt_instr_mem_index][pushaddr].Node_Addr;
                 tt_instr_mem[tt_instr_mem_index][pushaddr] = new_instr;
                 tt_instr_mem_cnt[tt_instr_mem_index] = pushaddr + 1;
                 dffs[node_num - luts.size()].res_pos_at_mem = pushaddr;

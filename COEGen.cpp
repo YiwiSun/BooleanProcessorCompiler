@@ -24,6 +24,29 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
     //              << "Num:" << i->first << endl;
     //     }
     // }
+    // for (auto i = luts.begin(); i != luts.end(); i++)
+    // {
+    //     if (i->second.out_ports == "_0002_")
+    //     {
+    //         cout << i->second.out_ports << " "
+    //              << "Cluster:" << i->second.node_addr.first << " "
+    //              << "Processor:" << i->second.node_addr.second << " "
+    //              << "Addr:" << i->second.res_pos_at_mem << " "
+    //              << "Num:" << i->first << endl;
+    //     }
+    // }
+    // for (auto i = luts.begin(); i != luts.end(); i++)
+    // {
+    //     if (i->second.out_ports == "_0531_")
+    //     {
+    //         cout << i->second.out_ports << " "
+    //              << "Cluster:" << i->second.node_addr.first << " "
+    //              << "Processor:" << i->second.node_addr.second << " "
+    //              << "Addr:" << i->second.res_pos_at_mem << " "
+    //              << "Num:" << i->first << endl;
+    //     }
+    // }
+    // cout << "completed signal addr in FF MEM: " << dffs[48].FF_Datamem_Addr << endl;
     // cout << endl;
     // auto instr_test = tt_instr_mem[35][82];
     // for (auto vd = instr_test.Value_Data.begin(); vd != instr_test.Value_Data.end(); vd++)
