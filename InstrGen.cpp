@@ -44,6 +44,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                     cur_node_for_id.push_back(*nfi);
             }       
         }
+        map<int, pair<int, int>> trans_ready;
         for (auto i = cur_node_for_id.begin(); i != cur_node_for_id.end(); i++)
         {
             if (*i < luts_size)
@@ -58,30 +59,42 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 }
                 else
                 {
-                    if (tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.size() < 4)
+                    if (trans_ready.find(for_node_addr_num) != trans_ready.end())
                     {
-                        tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.push_back(tt_instr_mem_index);
-                        int n = tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.size();
                         auto iter = find(luts[*i].in_net_from_id.begin(), luts[*i].in_net_from_id.end(), n_dff + luts_size);
-                        luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt);
+                        luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = trans_ready[for_node_addr_num];
                         luts[*i].in_net_from_ready[distance(luts[*i].in_net_from_id.begin(), iter)] = 1;
                     }
                     else
                     {
-                        for (int offset = 1;; offset++)
+                        if (tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.size() < 4)
                         {
-                            if (tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.size() < 4)
+                            tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.push_back(tt_instr_mem_index);
+                            int n = tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.size();
+                            auto iter = find(luts[*i].in_net_from_id.begin(), luts[*i].in_net_from_id.end(), n_dff + luts_size);
+                            luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt);
+                            luts[*i].in_net_from_ready[distance(luts[*i].in_net_from_id.begin(), iter)] = 1;
+                            trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt);
+                        }
+                        else
+                        {
+                            for (int offset = 1;; offset++)
                             {
-                                tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.push_back(tt_instr_mem_index);
-                                int n = tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.size();
-                                auto iter = find(luts[*i].in_net_from_id.begin(), luts[*i].in_net_from_id.end(), n_dff + luts_size);
-                                luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
-                                luts[*i].in_net_from_ready[distance(luts[*i].in_net_from_id.begin(), iter)] = 1;
-                                tt_instr_mem_cnt[tt_instr_mem_index] += offset;
-                                break;
+                                if (tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.size() < 4)
+                                {
+                                    tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.push_back(tt_instr_mem_index);
+                                    int n = tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.size();
+                                    auto iter = find(luts[*i].in_net_from_id.begin(), luts[*i].in_net_from_id.end(), n_dff + luts_size);
+                                    luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
+                                    luts[*i].in_net_from_ready[distance(luts[*i].in_net_from_id.begin(), iter)] = 1;
+                                    tt_instr_mem_cnt[tt_instr_mem_index] > (cur_instr_mem_cnt + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (cur_instr_mem_cnt + offset + 1);
+                                    // tt_instr_mem_cnt[tt_instr_mem_index] += offset;
+                                    trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
+                                    break;
+                                }
                             }
                         }
-                    }
+                    }           
                 }
             }
             else
@@ -96,30 +109,42 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 }
                 else
                 {
-                    if (tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.size() < 4)
+                    if (trans_ready.find(for_node_addr_num) != trans_ready.end())
                     {
-                        tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.push_back(tt_instr_mem_index);
-                        int n = tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.size();
                         auto iter = find(dffs[*i - luts_size].in_net_from_id.begin(), dffs[*i - luts_size].in_net_from_id.end(), n_dff + luts_size);
-                        dffs[*i - luts_size].in_net_from_addr[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt);
+                        dffs[*i - luts_size].in_net_from_addr[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = trans_ready[for_node_addr_num];
                         dffs[*i - luts_size].in_net_from_ready[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = 1;
                     }
                     else
                     {
-                        for (int offset = 1;; offset++)
+                        if (tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.size() < 4)
                         {
-                            if (tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.size() < 4)
+                            tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.push_back(tt_instr_mem_index);
+                            int n = tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt].Node_Addr.size();
+                            auto iter = find(dffs[*i - luts_size].in_net_from_id.begin(), dffs[*i - luts_size].in_net_from_id.end(), n_dff + luts_size);
+                            dffs[*i - luts_size].in_net_from_addr[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt);
+                            dffs[*i - luts_size].in_net_from_ready[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = 1;
+                            trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt);
+                        }
+                        else
+                        {
+                            for (int offset = 1;; offset++)
                             {
-                                tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.push_back(tt_instr_mem_index);
-                                int n = tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.size();
-                                auto iter = find(dffs[*i - luts_size].in_net_from_id.begin(), dffs[*i - luts_size].in_net_from_id.end(), n_dff + luts_size);
-                                dffs[*i - luts_size].in_net_from_addr[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
-                                dffs[*i - luts_size].in_net_from_ready[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = 1;
-                                tt_instr_mem_cnt[tt_instr_mem_index] += offset;
-                                break;
+                                if (tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.size() < 4)
+                                {
+                                    tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.push_back(tt_instr_mem_index);
+                                    int n = tt_instr_mem[for_node_addr_num][cur_instr_mem_cnt + offset].Node_Addr.size();
+                                    auto iter = find(dffs[*i - luts_size].in_net_from_id.begin(), dffs[*i - luts_size].in_net_from_id.end(), n_dff + luts_size);
+                                    dffs[*i - luts_size].in_net_from_addr[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
+                                    dffs[*i - luts_size].in_net_from_ready[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = 1;
+                                    tt_instr_mem_cnt[tt_instr_mem_index] > (cur_instr_mem_cnt + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (cur_instr_mem_cnt + offset + 1);
+                                    // tt_instr_mem_cnt[tt_instr_mem_index] += offset;
+                                    trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
+                                    break;
+                                }
                             }
                         }
-                    }
+                    }          
                 }
             }
         }
@@ -163,6 +188,14 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 luts[node_num].res_pos_at_mem = pushaddr;
 
                 auto cur_node_for_id = net_for_id[cur_lut.out_ports];
+                for (auto ap = assign_pairs.begin(); ap != assign_pairs.end(); ap++)
+                {
+                    if (ap->second == cur_lut.out_ports)
+                    {
+                        for (auto nfi = net_for_id[ap->first].begin(); nfi != net_for_id[ap->first].end(); nfi++)
+                            cur_node_for_id.push_back(*nfi);
+                    }
+                }
                 map<int, pair<int, int>> trans_ready;
                 for (auto id = cur_node_for_id.begin(); id != cur_node_for_id.end(); id++)
                 {
@@ -206,7 +239,8 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                                             auto iter = find(luts[*id].in_net_from_id.begin(), luts[*id].in_net_from_id.end(), node_num);
                                             luts[*id].in_net_from_addr[distance(luts[*id].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
                                             luts[*id].in_net_from_ready[distance(luts[*id].in_net_from_id.begin(), iter)] = 1;
-                                            tt_instr_mem_cnt[tt_instr_mem_index] += offset;
+                                            tt_instr_mem_cnt[tt_instr_mem_index] > (pushaddr + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (pushaddr + offset + 1);
+                                            // tt_instr_mem_cnt[tt_instr_mem_index] += offset;
                                             trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
                                             break;
                                         }
@@ -255,7 +289,8 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                                             auto iter = find(dffs[*id - luts_size].in_net_from_id.begin(), dffs[*id - luts_size].in_net_from_id.end(), node_num);
                                             dffs[*id - luts_size].in_net_from_addr[distance(dffs[*id - luts_size].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
                                             dffs[*id - luts_size].in_net_from_ready[distance(dffs[*id - luts_size].in_net_from_id.begin(), iter)] = 1;
-                                            tt_instr_mem_cnt[tt_instr_mem_index] += offset;
+                                            tt_instr_mem_cnt[tt_instr_mem_index] > (pushaddr + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (pushaddr + offset + 1);
+                                            // tt_instr_mem_cnt[tt_instr_mem_index] += offset;
                                             trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
                                             break;
                                         }
