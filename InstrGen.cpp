@@ -156,7 +156,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                     if (i->second != MEM_DEPTH - 1 && i->second != INITIAL_JUMP_ADDR && i->second >= cur_instr_mem_cnt)
                         pushaddr = ((i->second + 1) > pushaddr) ? i->second + 1 : pushaddr;
                 }
-                new_instr.Operand_Addr = tt_instr_mem[tt_instr_mem_index][pushaddr].Node_Addr;
+                new_instr.Node_Addr = tt_instr_mem[tt_instr_mem_index][pushaddr].Node_Addr;
                 tt_instr_mem[tt_instr_mem_index][pushaddr] = new_instr;
                 tt_instr_mem_cnt[tt_instr_mem_index] = pushaddr + 1;
                 luts[node_num].res_pos_at_mem = pushaddr;

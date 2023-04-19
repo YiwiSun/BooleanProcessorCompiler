@@ -12,40 +12,40 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
             map<int, LutType> &luts, map<int, DffType> &dffs, map<string, string> &pin_bits, map<string, string> &assign_pairs)
 {
     // debug
-    // for (auto i = dffs.begin(); i != dffs.end(); i++)
-    // {
-    //     if (i->second.dff_out.find("cycle") != string::npos)
-    //     {
-    //         cout << i->second.dff_out << " "
-    //              << "Cluster:" << i->second.node_addr.first << " "
-    //              << "Processor:" << i->second.node_addr.second << " "
-    //              << "Addr:" << i->second.res_pos_at_mem << " "
-    //              << "Type:" << i->second.type << " "
-    //              << "Num:" << i->first << endl;
-    //     }
-    // }
-    // for (auto i = luts.begin(); i != luts.end(); i++)
-    // {
-    //     if (i->second.out_ports == "_0002_")
-    //     {
-    //         cout << i->second.out_ports << " "
-    //              << "Cluster:" << i->second.node_addr.first << " "
-    //              << "Processor:" << i->second.node_addr.second << " "
-    //              << "Addr:" << i->second.res_pos_at_mem << " "
-    //              << "Num:" << i->first << endl;
-    //     }
-    // }
-    // for (auto i = luts.begin(); i != luts.end(); i++)
-    // {
-    //     if (i->second.out_ports == "_0531_")
-    //     {
-    //         cout << i->second.out_ports << " "
-    //              << "Cluster:" << i->second.node_addr.first << " "
-    //              << "Processor:" << i->second.node_addr.second << " "
-    //              << "Addr:" << i->second.res_pos_at_mem << " "
-    //              << "Num:" << i->first << endl;
-    //     }
-    // }
+    for (auto i = dffs.begin(); i != dffs.end(); i++)
+    {
+        if (i->second.dff_out.find("cycle") != string::npos)
+        {
+            cout << i->second.dff_out << " "
+                 << "Cluster:" << i->second.node_addr.first << " "
+                 << "Processor:" << i->second.node_addr.second << " "
+                 << "Addr:" << i->second.res_pos_at_mem << " "
+                 << "Type:" << i->second.type << " "
+                 << "Num:" << i->first << endl;
+        }
+    }
+    for (auto i = luts.begin(); i != luts.end(); i++)
+    {
+        if (i->second.out_ports == "_0002_")
+        {
+            cout << i->second.out_ports << " "
+                 << "Cluster:" << i->second.node_addr.first << " "
+                 << "Processor:" << i->second.node_addr.second << " "
+                 << "Addr:" << i->second.res_pos_at_mem << " "
+                 << "Num:" << i->first << endl;
+        }
+    }
+    for (auto i = luts.begin(); i != luts.end(); i++)
+    {
+        if (i->second.out_ports == "_0531_")
+        {
+            cout << i->second.out_ports << " "
+                 << "Cluster:" << i->second.node_addr.first << " "
+                 << "Processor:" << i->second.node_addr.second << " "
+                 << "Addr:" << i->second.res_pos_at_mem << " "
+                 << "Num:" << i->first << endl;
+        }
+    }
     // cout << "completed signal addr in FF MEM: " << dffs[48].FF_Datamem_Addr << endl;
     // cout << endl;
     // auto instr_test = tt_instr_mem[35][82];
