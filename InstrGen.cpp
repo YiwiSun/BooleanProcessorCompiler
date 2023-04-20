@@ -363,8 +363,8 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                         // | if (dff_in_ports[1])     dff_out <= dff_in_ports[0]   |   <dff_in_ports[0], <dff_in_ports[1], 0/1>>  |
                         // --------------------------------------------------------------------------------------------------------
                         new_instr.Value_Data   = {DFF_If_1, assignsig_condsig[0].second[0].second, 0, 0, 0};
-                        new_instr.Datamem_Sel  = {0, 0, cur_dff.in_net_from_addr[1].first, cur_dff.in_net_from_addr[1].first};
-                        new_instr.Operand_Addr = {0, 0, cur_dff.in_net_from_addr[0].second, cur_dff.in_net_from_addr[0].second};
+                        new_instr.Datamem_Sel  = {0, 0, cur_dff.in_net_from_addr[1].first, cur_dff.in_net_from_addr[0].first};
+                        new_instr.Operand_Addr = {0, 0, cur_dff.in_net_from_addr[1].second, cur_dff.in_net_from_addr[0].second};
                     }
                 }
                 else if (cur_dff.type == 2)
