@@ -87,7 +87,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                                     auto iter = find(luts[*i].in_net_from_id.begin(), luts[*i].in_net_from_id.end(), n_dff + luts_size);
                                     luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
                                     luts[*i].in_net_from_ready[distance(luts[*i].in_net_from_id.begin(), iter)] = 1;
-                                    tt_instr_mem_cnt[tt_instr_mem_index] > (cur_instr_mem_cnt + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (cur_instr_mem_cnt + offset + 1);
+                                    tt_instr_mem_cnt[tt_instr_mem_index] = tt_instr_mem_cnt[tt_instr_mem_index] > (cur_instr_mem_cnt + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (cur_instr_mem_cnt + offset + 1);
                                     // tt_instr_mem_cnt[tt_instr_mem_index] += offset;
                                     trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
                                     break;
@@ -137,7 +137,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                                     auto iter = find(dffs[*i - luts_size].in_net_from_id.begin(), dffs[*i - luts_size].in_net_from_id.end(), n_dff + luts_size);
                                     dffs[*i - luts_size].in_net_from_addr[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
                                     dffs[*i - luts_size].in_net_from_ready[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = 1;
-                                    tt_instr_mem_cnt[tt_instr_mem_index] > (cur_instr_mem_cnt + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (cur_instr_mem_cnt + offset + 1);
+                                    tt_instr_mem_cnt[tt_instr_mem_index] = tt_instr_mem_cnt[tt_instr_mem_index] > (cur_instr_mem_cnt + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (cur_instr_mem_cnt + offset + 1);
                                     // tt_instr_mem_cnt[tt_instr_mem_index] += offset;
                                     trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
                                     break;
@@ -239,7 +239,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                                             auto iter = find(luts[*id].in_net_from_id.begin(), luts[*id].in_net_from_id.end(), node_num);
                                             luts[*id].in_net_from_addr[distance(luts[*id].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
                                             luts[*id].in_net_from_ready[distance(luts[*id].in_net_from_id.begin(), iter)] = 1;
-                                            tt_instr_mem_cnt[tt_instr_mem_index] > (pushaddr + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (pushaddr + offset + 1);
+                                            tt_instr_mem_cnt[tt_instr_mem_index] = tt_instr_mem_cnt[tt_instr_mem_index] > (pushaddr + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (pushaddr + offset + 1);
                                             // tt_instr_mem_cnt[tt_instr_mem_index] += offset;
                                             trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
                                             break;
@@ -289,7 +289,7 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                                             auto iter = find(dffs[*id - luts_size].in_net_from_id.begin(), dffs[*id - luts_size].in_net_from_id.end(), node_num);
                                             dffs[*id - luts_size].in_net_from_addr[distance(dffs[*id - luts_size].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
                                             dffs[*id - luts_size].in_net_from_ready[distance(dffs[*id - luts_size].in_net_from_id.begin(), iter)] = 1;
-                                            tt_instr_mem_cnt[tt_instr_mem_index] > (pushaddr + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (pushaddr + offset + 1);
+                                            tt_instr_mem_cnt[tt_instr_mem_index] = tt_instr_mem_cnt[tt_instr_mem_index] > (pushaddr + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (pushaddr + offset + 1);
                                             // tt_instr_mem_cnt[tt_instr_mem_index] += offset;
                                             trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
                                             break;

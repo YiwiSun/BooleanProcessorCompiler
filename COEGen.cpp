@@ -14,6 +14,30 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
     // debug
     for (auto i = dffs.begin(); i != dffs.end(); i++)
     {
+        if (i->second.dff_out.find("LREG") != string::npos)
+        {
+            cout << i->second.dff_out << " "
+                 << "Cluster:" << i->second.node_addr.first << " "
+                 << "Processor:" << i->second.node_addr.second << " "
+                 << "Addr:" << i->second.res_pos_at_mem << " "
+                 << "Type:" << i->second.type << " "
+                 << "DFF Num:" << i->first << endl;
+        }
+    }
+    for (auto i = dffs.begin(); i != dffs.end(); i++)
+    {
+        if (i->second.dff_out.find("RREG") != string::npos)
+        {
+            cout << i->second.dff_out << " "
+                 << "Cluster:" << i->second.node_addr.first << " "
+                 << "Processor:" << i->second.node_addr.second << " "
+                 << "Addr:" << i->second.res_pos_at_mem << " "
+                 << "Type:" << i->second.type << " "
+                 << "DFF Num:" << i->first << endl;
+        }
+    }
+    for (auto i = dffs.begin(); i != dffs.end(); i++)
+    {
         if (i->second.dff_out.find("cycle") != string::npos)
         {
             cout << i->second.dff_out << " "
@@ -21,7 +45,7 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
                  << "Processor:" << i->second.node_addr.second << " "
                  << "Addr:" << i->second.res_pos_at_mem << " "
                  << "Type:" << i->second.type << " "
-                 << "Num:" << i->first << endl;
+                 << "DFF Num:" << i->first << endl;
         }
     }
     for (auto i = luts.begin(); i != luts.end(); i++)
@@ -32,7 +56,7 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
                  << "Cluster:" << i->second.node_addr.first << " "
                  << "Processor:" << i->second.node_addr.second << " "
                  << "Addr:" << i->second.res_pos_at_mem << " "
-                 << "Num:" << i->first << endl;
+                 << "LUT Num:" << i->first << endl;
         }
     }
     for (auto i = luts.begin(); i != luts.end(); i++)
@@ -43,7 +67,7 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
                  << "Cluster:" << i->second.node_addr.first << " "
                  << "Processor:" << i->second.node_addr.second << " "
                  << "Addr:" << i->second.res_pos_at_mem << " "
-                 << "Num:" << i->first << endl;
+                 << "LUT Num:" << i->first << endl;
         }
     }
     // cout << "completed signal addr in FF MEM: " << dffs[48].FF_Datamem_Addr << endl;

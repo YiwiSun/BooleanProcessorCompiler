@@ -4,12 +4,12 @@
 // For input initial signal changing
 //! des64_src
 #define INITIAL_JUMP_SIG        "rst_n"
-#define INITIAL_JUMP_ADDR       29
+#define INITIAL_JUMP_ADDR       32
 #define INITIAL_STATIC_VALUE    1
 
 //! AES-FPGA-master
 // #define INITIAL_JUMP_SIG        "ld"
-// #define INITIAL_JUMP_ADDR       49
+// #define INITIAL_JUMP_ADDR       53
 // #define INITIAL_STATIC_VALUE    0
 
 
