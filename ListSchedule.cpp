@@ -200,9 +200,9 @@ void ListSch::FF_allocate(vector<vector<int>> &nodes_in_per_bp, map<int, LutType
         if (!(*iter).empty())
         {
             int addr {0};
-            for (auto node = iter->begin(); node != iter->end(); node++)
+             for (auto node = iter->begin(); node != iter->end(); node++) 
             {
-                if (*node > luts.size())
+                if (*node >= luts.size())
                 {
                     dffs[*node - luts.size()].FF_Datamem_Addr = addr;
                     addr++;

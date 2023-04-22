@@ -38,6 +38,18 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
     }
     for (auto i = dffs.begin(); i != dffs.end(); i++)
     {
+        if (i->second.dff_out.find("keyREG") != string::npos)
+        {
+            cout << i->second.dff_out << " "
+                 << "Cluster:" << i->second.node_addr.first << " "
+                 << "Processor:" << i->second.node_addr.second << " "
+                 << "Addr:" << i->second.res_pos_at_mem << " "
+                 << "Type:" << i->second.type << " "
+                 << "DFF Num:" << i->first << endl;
+        }
+    }
+    for (auto i = dffs.begin(); i != dffs.end(); i++)
+    {
         if (i->second.dff_out.find("cycle") != string::npos)
         {
             cout << i->second.dff_out << " "
@@ -50,7 +62,7 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
     }
     for (auto i = luts.begin(); i != luts.end(); i++)
     {
-        if (i->second.out_ports == "_0002_")
+        if (i->second.out_ports == "_0141_")
         {
             cout << i->second.out_ports << " "
                  << "Cluster:" << i->second.node_addr.first << " "
@@ -61,7 +73,7 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
     }
     for (auto i = luts.begin(); i != luts.end(); i++)
     {
-        if (i->second.out_ports == "_0531_")
+        if (i->second.out_ports == "_0142_")
         {
             cout << i->second.out_ports << " "
                  << "Cluster:" << i->second.node_addr.first << " "
@@ -72,7 +84,7 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
     }
     for (auto i = luts.begin(); i != luts.end(); i++)
     {
-        if (i->second.out_ports == "_0035_")
+        if (i->second.out_ports == "_0150_")
         {
             cout << i->second.out_ports << " "
                  << "Cluster:" << i->second.node_addr.first << " "
@@ -83,7 +95,18 @@ void COEGen(vector<vector<Instr>> &tt_instr_mem, string &instr_out, string &out_
     }
     for (auto i = luts.begin(); i != luts.end(); i++)
     {
-        if (i->second.out_ports == "_0136_")
+        if (i->second.out_ports == "_0145_")
+        {
+            cout << i->second.out_ports << " "
+                 << "Cluster:" << i->second.node_addr.first << " "
+                 << "Processor:" << i->second.node_addr.second << " "
+                 << "Addr:" << i->second.res_pos_at_mem << " "
+                 << "LUT Num:" << i->first << endl;
+        }
+    }
+    for (auto i = luts.begin(); i != luts.end(); i++)
+    {
+        if (i->second.out_ports == "_0617_")
         {
             cout << i->second.out_ports << " "
                  << "Cluster:" << i->second.node_addr.first << " "
