@@ -39,11 +39,9 @@ class Parser {
         // param
         std::string top_module_name;
         map<std::string, Pin> pins;                   // name : Pin
-        // vector<std::string> pin_bits;
         map<string, string> pin_bits;                 // name : PinType
-        map<int, LutType> luts;                       // num : LutType
-        map<int, DffType> dffs;                       // num : DffType
-        vector<std::string> dff_outs;                 // outputs from dffs
+        map<int, LutType> luts;                       // num  : LutType
+        map<int, DffType> dffs;                       // num  : DffType
         map<string, vector<int>> net_for_id;
         map<string, int> net_from_id;
         map<string, vector<int>> net_for_id_dff;

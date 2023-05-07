@@ -124,7 +124,6 @@ void Parser::parse_v(std::string& v_path){
                         int i = cur_pin.lindex;
                         for(int j = 0; j < cur_pin.size; j++) {
                             std::string _name = tmp_name + "[" + to_string(i) + "]";
-                            // pin_bits.push_back(_name);
                             pin_bits.insert(pair<string, string>(_name, cur_pin.type));
                             if(cur_pin.lindex > cur_pin.rindex) {
                                 i--;
@@ -934,6 +933,7 @@ void Parser::parse_v(std::string& v_path){
                         if (tmp[2] == "=")
                         {
                             cur_lut.out_ports = tmp[1];
+                            cur_lut.out_ports_type = pin_bits[cur_lut.out_ports];
                             string tmp_lut_res = tmp[3].substr(tmp[3].find("h") + 1, tmp[3].size() - tmp[3].find("h") - 1);
                             cur_lut.lut_res = tmp_lut_res;                           
                         }                           
@@ -941,6 +941,7 @@ void Parser::parse_v(std::string& v_path){
                         {
                             assert(tmp[3] == "=");
                             cur_lut.out_ports = tmp[1] + tmp[2];
+                            cur_lut.out_ports_type = pin_bits[cur_lut.out_ports];
                             string tmp_lut_res = tmp[4].substr(tmp[4].find("h") + 1, tmp[4].size() - tmp[4].find("h") - 1);
                             cur_lut.lut_res = tmp_lut_res;
                         }
@@ -1251,9 +1252,15 @@ void Parser::parse_v(std::string& v_path){
                             else
                                 cond.push_back(make_pair((tmp.begin() + mark[0] + 2)->substr((tmp.begin() + mark[0] + 2)->find("!") + 1, (tmp.begin() + mark[0] + 2)->find(")") - (tmp.begin() + mark[0] + 2)->find("!") - 1), 0));               
                             if (*(tmp.begin() + mark[0] + 4) == "<=")
+                            {
                                 cur_dff.dff_out = *(tmp.begin() + mark[0] + 3);
+                                cur_dff.dff_out_ports_type = pin_bits[cur_dff.dff_out];
+                            }
                             else if (*(tmp.begin() + mark[0] + 5) == "<=")
+                            {
                                 cur_dff.dff_out = *(tmp.begin() + mark[0] + 3) + *(tmp.begin() + mark[0] + 4);
+                                cur_dff.dff_out_ports_type = pin_bits[cur_dff.dff_out];
+                            }   
                             auto it = find(tmp.begin(), tmp.end(), "<=");
                             if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find(";") != string::npos)
                             {
@@ -1295,9 +1302,15 @@ void Parser::parse_v(std::string& v_path){
                             else
                                 cond.push_back(make_pair((tmp.begin() + mark[1] + 2)->substr((tmp.begin() + mark[1] + 2)->find("!") + 1, (tmp.begin() + mark[1] + 2)->find(")") - (tmp.begin() + mark[1] + 2)->find("!") - 1), 0));
                             if (*(tmp.begin() + mark[1] + 4) == "<=")
+                            {
                                 cur_dff.dff_out = *(tmp.begin() + mark[1] + 3);
+                                cur_dff.dff_out_ports_type = pin_bits[cur_dff.dff_out];
+                            }
                             else if (*(tmp.begin() + mark[1] + 5) == "<=")
+                            {
                                 cur_dff.dff_out = *(tmp.begin() + mark[1] + 3) + *(tmp.begin() + mark[1] + 4);
+                                cur_dff.dff_out_ports_type = pin_bits[cur_dff.dff_out];
+                            }                             
                             auto it = find(tmp.begin(), tmp.end(), "<=");
                             if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find(";") != string::npos)
                             {
@@ -1418,9 +1431,15 @@ void Parser::parse_v(std::string& v_path){
                         vector<pair<string, int>> cond;
                         cond.push_back(make_pair(" ", -1));
                         if (*(tmp.begin() + mark[0] + 2) == "<=")
+                        {
                             cur_dff.dff_out = *(tmp.begin() + mark[0] + 1);
+                            cur_dff.dff_out_ports_type = pin_bits[cur_dff.dff_out];
+                        }    
                         else if (*(tmp.begin() + mark[0] + 3) == "<=")
+                        {
                             cur_dff.dff_out = *(tmp.begin() + mark[0] + 1) + *(tmp.begin() + mark[0] + 2);
+                            cur_dff.dff_out_ports_type = pin_bits[cur_dff.dff_out];
+                        }    
                         auto it = find(tmp.begin(), tmp.end(), "<=");
                         if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find(";") != string::npos)
                         {
@@ -1435,7 +1454,7 @@ void Parser::parse_v(std::string& v_path){
                                 cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
                             }
                         }
-                        else if (((tmp.begin() + distance(tmp.begin(), it) + 1)->find(";") != string::npos) && ((tmp.begin() + distance(tmp.begin(), it) + 2)->find(";") == string::npos))
+                        else if (((tmp.begin() + distance(tmp.begin(), it) + 2)->find(";") != string::npos))
                         {
                             if ((tmp.begin() + distance(tmp.begin(), it) + 1)->find("'") == string::npos)
                             {
@@ -1449,8 +1468,7 @@ void Parser::parse_v(std::string& v_path){
                                 cur_dff.assignsig_condsig.push_back(make_pair(assignsig, cond));
                             }
                         }
-                    }
-                    dff_outs.push_back(cur_dff.dff_out);                   
+                    }               
                     vector<string> cur_dff_in_ports;
                     for (auto i = cur_dff.assignsig_condsig.begin(); i != cur_dff.assignsig_condsig.end(); i++)
                     {

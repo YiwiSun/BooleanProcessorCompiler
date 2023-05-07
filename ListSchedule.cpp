@@ -37,6 +37,7 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
     int CL = levels_ASAP.size();    // Critical Length
     vector<vector<int>> SchList(CL, vector<int> ());
     vector<vector<int>> nodes_in_per_bp(N_PROCESSORS, vector<int>());
+    vector<int> interface_in_per_bp(N_PROCESSORS, 0);
     for (auto i = levels_ASAP.begin(); i != levels_ASAP.end(); i++)
     {
         for (auto j = i->begin(); j != i->end(); j++)
@@ -78,7 +79,7 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
             {
                 if (find(CPN.begin(), CPN.end(), v.first) != CPN.end())
                 {
-                    int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, 0, 1, done, SchList, level, luts, dffs, BPSch, part, nodes_in_per_bp);
+                    int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, 0, 1, done, SchList, level, luts, dffs, BPSch, part, nodes_in_per_bp, interface_in_per_bp);
                     ToSch.erase(remove(ToSch.begin(), ToSch.end(), v.first), ToSch.end());
                     if (OK)
                     {
@@ -88,7 +89,7 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
                 }
                 else if (v.second == 0)
                 {
-                    int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, 0, 1, done, SchList, level, luts, dffs, BPSch, part, nodes_in_per_bp);
+                    int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, 0, 1, done, SchList, level, luts, dffs, BPSch, part, nodes_in_per_bp,interface_in_per_bp);
                     ToSch.erase(remove(ToSch.begin(), ToSch.end(), v.first), ToSch.end());
                     if (OK)
                     {
@@ -103,7 +104,7 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
             int maxcycle = *max_element(Max_Cycle.begin(), Max_Cycle.end());
             for (auto v : Vertex_Fanout)
             {
-                int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, maxcycle, 0, done, SchList, level, luts, dffs, BPSch, part, nodes_in_per_bp);
+                int OK = allocate_and_collapse_IMM(v.first, Max_Cycle, maxcycle, 0, done, SchList, level, luts, dffs, BPSch, part, nodes_in_per_bp, interface_in_per_bp);
                 ToSch.erase(remove(ToSch.begin(), ToSch.end(), v.first), ToSch.end());
                 if (OK)
                 {
@@ -113,10 +114,18 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
             }
         }
     }
-    if (count(done.begin(), done.end(), 1) == nNode)
-        cout << "ListSchedule OK!" << endl;
+    if (count(done.begin(), done.end(), 1) != nNode)
+    {
+        cout << "ERROR: ListSchedule Fail to Iterate over All Nodes!" << endl;
+        exit(-1);
+    }
+    else if (*max_element(interface_in_per_bp.begin(), interface_in_per_bp.end()) > INTERFACE_PER_PROCESSOR)
+    {
+        cout << "ERROR: ListSchedule Fail to Match the Maximum Interface Limit!" << endl;
+        exit(-1);
+    }
     else
-        cout << "ListSchedule ERROR!" << endl;
+        cout << "ListSchedule OK!" << endl;
 
     
     // debug
@@ -140,12 +149,12 @@ vector<vector<int>> ListSch::MLS(vector<vector<int>> &levels_ASAP, vector<vector
     }
 
     FF_allocate(nodes_in_per_bp, luts, dffs);
-
+    
     return SchList;
 }
 
 int ListSch::allocate_and_collapse_IMM(int &v, vector<int> &Max_Cycle, const int &maxcycle, const int &type, vector<int> &done, vector<vector<int>> &SchList, int &level,
-                                       map<int, LutType> &luts, map<int, DffType> &dffs, vector<int> &BPSch, vector<idx_t> &part, vector<vector<int>> &nodes_in_per_bp)
+                                       map<int, LutType> &luts, map<int, DffType> &dffs, vector<int> &BPSch, vector<idx_t> &part, vector<vector<int>> &nodes_in_per_bp, vector<int> &interface_in_per_bp)
 {
     int cur_part = part[v];
     int cur_BP = BPSch[cur_part];
@@ -175,6 +184,8 @@ int ListSch::allocate_and_collapse_IMM(int &v, vector<int> &Max_Cycle, const int
         }
         luts[v].node_addr = make_pair(cur_part, cur_BP);
         nodes_in_per_bp[cur_part * N_PROCESSORS_PER_CLUSTER + cur_BP].push_back(v);
+        if (luts[v].out_ports_type == "output")
+            interface_in_per_bp[cur_part * N_PROCESSORS_PER_CLUSTER + cur_BP]++;
     }
     else
     {
@@ -189,6 +200,8 @@ int ListSch::allocate_and_collapse_IMM(int &v, vector<int> &Max_Cycle, const int
         }
         dffs[v - luts.size()].node_addr = make_pair(cur_part, cur_BP);
         nodes_in_per_bp[cur_part * N_PROCESSORS_PER_CLUSTER + cur_BP].push_back(v);
+        if (dffs[v - luts.size()].dff_out_ports_type == "output")
+            interface_in_per_bp[cur_part * N_PROCESSORS_PER_CLUSTER + cur_BP]++;
     }
     return 1;
 }

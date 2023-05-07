@@ -19,6 +19,13 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
     vector<int> tt_instr_mem_cnt(N_PROCESSORS, 0);
     auto luts_size = luts.size();
 
+    // Waiting to receive interface data with NOPs
+    for (auto n = 0; n < tt_instr_mem.size(); n++)
+    {
+        tt_instr_mem[n][PRE_DELAY - 2].InterfaceControl = {1, 0, 0};
+        tt_instr_mem_cnt[n] = PRE_DELAY;
+    }
+
     // Transmit FF data in advance
     for (int n_dff = 0; n_dff < dffs.size(); n_dff++)
     {
@@ -27,11 +34,12 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
         auto tt_instr_mem_index = cur_node_addr.first * N_PROCESSORS_PER_CLUSTER + cur_node_addr.second;
         auto cur_instr_mem_cnt  = tt_instr_mem_cnt[tt_instr_mem_index];
         Instr new_instr;
-        new_instr.Opcode = MEM_ACCESS;
-        new_instr.Jump         = {0, 0};
-        new_instr.Node_Addr    = tt_instr_mem[tt_instr_mem_index][cur_instr_mem_cnt].Node_Addr;
-        new_instr.Datamem_Sel  = {0, 0, 0, FF_Datamem};
-        new_instr.Operand_Addr = {0, 0, 0, dffs[n_dff].FF_Datamem_Addr};
+        new_instr.InterfaceControl = {0, 0, 0};
+        new_instr.Opcode           = MEM_ACCESS;
+        new_instr.Jump             = {0, 0};
+        new_instr.Node_Addr        = tt_instr_mem[tt_instr_mem_index][cur_instr_mem_cnt].Node_Addr;
+        new_instr.Datamem_Sel      = {0, 0, 0, FF_Datamem};
+        new_instr.Operand_Addr     = {0, 0, 0, dffs[n_dff].FF_Datamem_Addr};
         tt_instr_mem[tt_instr_mem_index][cur_instr_mem_cnt] = new_instr;
         tt_instr_mem_cnt[tt_instr_mem_index] += 1;
         
@@ -88,7 +96,6 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                                     luts[*i].in_net_from_addr[distance(luts[*i].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
                                     luts[*i].in_net_from_ready[distance(luts[*i].in_net_from_id.begin(), iter)] = 1;
                                     tt_instr_mem_cnt[tt_instr_mem_index] = tt_instr_mem_cnt[tt_instr_mem_index] > (cur_instr_mem_cnt + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (cur_instr_mem_cnt + offset + 1);
-                                    // tt_instr_mem_cnt[tt_instr_mem_index] += offset;
                                     trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
                                     break;
                                 }
@@ -138,7 +145,6 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                                     dffs[*i - luts_size].in_net_from_addr[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
                                     dffs[*i - luts_size].in_net_from_ready[distance(dffs[*i - luts_size].in_net_from_id.begin(), iter)] = 1;
                                     tt_instr_mem_cnt[tt_instr_mem_index] = tt_instr_mem_cnt[tt_instr_mem_index] > (cur_instr_mem_cnt + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (cur_instr_mem_cnt + offset + 1);
-                                    // tt_instr_mem_cnt[tt_instr_mem_index] += offset;
                                     trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), cur_instr_mem_cnt + offset);
                                     break;
                                 }
@@ -169,8 +175,12 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 int cur_instr_mem_cnt  = tt_instr_mem_cnt[tt_instr_mem_index];
                 int pushaddr = cur_instr_mem_cnt;
                 Instr new_instr;
-                new_instr.Opcode      = LUT_CONFIG;
-                new_instr.Jump        = {0, 0};
+                if (cur_lut.out_ports_type == "output")
+                    new_instr.InterfaceControl = {0, 0, 1};
+                else
+                    new_instr.InterfaceControl = {0, 0, 0};
+                new_instr.Opcode           = LUT_CONFIG;
+                new_instr.Jump             = {0, 0};
                 new_instr.Value_Data.push_back(stoi(cur_lut.lut_res, nullptr, 16));
                 for (auto iter = cur_lut.in_net_from_addr.begin(); iter != cur_lut.in_net_from_addr.end(); iter++)
                 {
@@ -179,7 +189,8 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 for (auto iter = cur_lut.in_net_from_addr.begin(); iter != cur_lut.in_net_from_addr.end(); iter++)
                 {
                     new_instr.Operand_Addr.push_back(iter->second);
-                    if (iter->second != MEM_DEPTH - 1 && iter->second != INITIAL_JUMP_ADDR && iter->second >= cur_instr_mem_cnt)
+                    if (iter->second != MEM_DEPTH - 1 && iter->second != INITIAL_JUMP_ADDR && 
+                        iter->first != Interface_FIFO_0 && iter->first !=  Interface_FIFO_1 && iter->second >= cur_instr_mem_cnt)
                         pushaddr = ((iter->second + 1) > pushaddr) ? iter->second + 1 : pushaddr;
                 }
                 new_instr.Node_Addr = tt_instr_mem[tt_instr_mem_index][pushaddr].Node_Addr;
@@ -240,7 +251,6 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                                             luts[*id].in_net_from_addr[distance(luts[*id].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
                                             luts[*id].in_net_from_ready[distance(luts[*id].in_net_from_id.begin(), iter)] = 1;
                                             tt_instr_mem_cnt[tt_instr_mem_index] = tt_instr_mem_cnt[tt_instr_mem_index] > (pushaddr + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (pushaddr + offset + 1);
-                                            // tt_instr_mem_cnt[tt_instr_mem_index] += offset;
                                             trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
                                             break;
                                         }
@@ -290,7 +300,6 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                                             dffs[*id - luts_size].in_net_from_addr[distance(dffs[*id - luts_size].in_net_from_id.begin(), iter)] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
                                             dffs[*id - luts_size].in_net_from_ready[distance(dffs[*id - luts_size].in_net_from_id.begin(), iter)] = 1;
                                             tt_instr_mem_cnt[tt_instr_mem_index] = tt_instr_mem_cnt[tt_instr_mem_index] > (pushaddr + offset + 1) ? tt_instr_mem_cnt[tt_instr_mem_index] : (pushaddr + offset + 1);
-                                            // tt_instr_mem_cnt[tt_instr_mem_index] += offset;
                                             trans_ready[for_node_addr_num] = make_pair(Sel_Exter_Datamem(n), pushaddr + offset);
                                             break;
                                         }
@@ -315,6 +324,10 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 int pushaddr = cur_instr_mem_cnt;
                 auto assignsig_condsig = cur_dff.assignsig_condsig;
                 Instr new_instr;
+                if (cur_dff.dff_out_ports_type == "output")
+                    new_instr.InterfaceControl = {0, 0, 1};
+                else
+                    new_instr.InterfaceControl = {0, 0, 0};
                 new_instr.Opcode = FF_CONFIG;
                 new_instr.Jump   = {0, 0};
                 if (cur_dff.type == 0)
@@ -544,7 +557,8 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
                 }
                 for (auto i = cur_dff.in_net_from_addr.begin(); i != cur_dff.in_net_from_addr.end(); i++)
                 {
-                    if (i->second != MEM_DEPTH - 1 && i->second != INITIAL_JUMP_ADDR && i->second >= cur_instr_mem_cnt)
+                    if (i->second != MEM_DEPTH - 1 && i->second != INITIAL_JUMP_ADDR 
+                        && i->first != Interface_FIFO_0 && i->first != Interface_FIFO_1 && i->second >= cur_instr_mem_cnt)
                         pushaddr = ((i->second + 1) > pushaddr) ? i->second + 1 : pushaddr;
                 }
                 new_instr.Node_Addr = tt_instr_mem[tt_instr_mem_index][pushaddr].Node_Addr;
@@ -555,17 +569,26 @@ vector<vector<Instr>> InstrGen(vector<vector<int>> &SchList, map<int, LutType> &
         }
     }
 
+    // Waiting to transfer interface data with NOPs
+    auto max = *max_element(tt_instr_mem_cnt.begin(), tt_instr_mem_cnt.end());
+    for (auto n = 0; n < tt_instr_mem.size(); n++)
+    {
+        tt_instr_mem[n][max].InterfaceControl = {0, 1, 0};
+        tt_instr_mem_cnt[n] = max + POST_DELAY;
+    }
+
     // Instruction for Jumping
     Instr new_instr;
-    new_instr.Opcode = STATIC_CONFIG;
-    new_instr.Jump   = {1, 0};
+    new_instr.InterfaceControl = {0, 0, 0};
+    new_instr.Opcode           = STATIC_CONFIG;
+    new_instr.Jump             = {1, 0};
     new_instr.Value_Data.push_back(INITIAL_STATIC_VALUE);
     new_instr.Datamem_Sel  = {0, 0, 0, 0};
     new_instr.Operand_Addr = {0, 0, 0, 0};
-    auto max = *max_element(tt_instr_mem_cnt.begin(), tt_instr_mem_cnt.end());
+    auto pushaddr = tt_instr_mem_cnt[0];
     for (auto n = tt_instr_mem.begin(); n != tt_instr_mem.end(); n++)
     {
-        (*n)[max] = new_instr;
+        (*n)[pushaddr] = new_instr;
     }
 
 

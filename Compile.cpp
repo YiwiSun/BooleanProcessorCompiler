@@ -4,6 +4,7 @@
 
 #include "compile.h"
 #include "ArchDefine.h"
+#include "Interface.h"
 #include "Parser.h"
 #include "VCDParser.h"
 #include "VCDTypes.h"
@@ -113,7 +114,9 @@ int main(int argc, char const *argv[])
     std::cout << "5. Executing pre-processing." << endl;
     auto start_pre = std::chrono::steady_clock::now();
 
-    PreProcess(part, luts, dffs, nNode, net_from_id, net_from_id_dff, pinbitValues, assign_pairs, vcd_values);
+    Interface _interface;
+    auto interface_addr = _interface.init_map();
+    PreProcess(part, luts, dffs, nNode, net_from_id, net_from_id_dff, pinbitValues, assign_pairs, vcd_values, interface_addr);
 
     auto end_pre = std::chrono::steady_clock::now();
     long duration_pre = std::chrono::duration_cast<std::chrono::milliseconds>(end_pre - start_pre).count();

@@ -12,7 +12,6 @@ using namespace std;
 /**
  * @brief Generate 'Input INFO List' for Scheduling and Instruction Generation(IG)
  *
- * @param nParts
  * @param part
  * @param luts
  * @param dffs
@@ -21,11 +20,14 @@ using namespace std;
  * @param net_from_id_dff
  * @param pinbitValues
  * @param assign_pairs
+ * @param vcd_values
+ * @param interface_addr
  */
 void PreProcess(vector<idx_t> &part,
                 map<int, LutType> &luts, map<int, DffType> &dffs, int &nNodes,
                 map<string, int> &net_from_id, map<string, int> &net_from_id_dff,
                 map<string, TimedValues *> &pinbitValues, map<string, string> &assign_pairs, 
-                unordered_map<string, vector<short> *> &vcd_values);
+                unordered_map<string, vector<short> *> &vcd_values,
+                map<string, pair<int, int>> &interface_addr);
 
 #endif

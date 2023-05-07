@@ -11,21 +11,25 @@
 #ifndef ARCHDEFINE_H
 #define ARCHDEFINE_H
 
+//! Full-connection
+#define N_PROCESSORS                256
+#define DATA_TRANS_CLK              1
 //! Multi-cluster
 #define MAX_CLUSTERS                4
 #define N_PROCESSORS_PER_CLUSTER    64
 #define INTRA_CLUSTER_CLK           1
 #define INTER_CLUSTER_CLK           2
-//! Full-connection
-#define N_PROCESSORS                256
-#define DATA_TRANS_CLK              1
 
 #define INS_DEPTH                   512
 #define MEM_DEPTH                   512
-#define N_LUTS_PER_PROCESSOR        50
 
-#define LUT_Size                    4
-#define Fetch_Data_Size             4
+#define LUT_SIZE                    4
+#define FETCH_DATA_SIZE             4
+#define N_LUTS_PER_PROCESSOR        70
+
+#define PRE_DELAY                   5
+#define POST_DELAY                  5
+#define INTERFACE_PER_PROCESSOR     4
 
 #define MEMORY_INITIALIZATION_RADIX 2
 

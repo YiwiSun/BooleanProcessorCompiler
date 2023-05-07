@@ -150,15 +150,16 @@ typedef struct
     unsigned long long      num;
     vector<string>          in_ports;
     string                  out_ports;
+    string                  out_ports_type;
     string                  lut_res;
 
     pair<int, int>          node_addr; 
     int                     res_pos_at_mem;
 
-    vector<int>             in_net_from_type;       // 0: input from LUTs; 1: input from DFFs; 2: input from PinbitValues; 3: input from Initials
-    vector<int>             in_net_from_id;         // ID of LUTs/DFFs; Value of PinbitValues/Initials (-1: Value_1; -2: Value_0)
-    vector<string>          in_net_from_info;       // blank of LUTs/DFFs; INFO of PinbitValues/Initials
-    vector<int>             in_net_from_part;       // Part of LUTs/DFFs (-3 if the same part); -1 if PinbitValues/Initials
+    vector<int>             in_net_from_type;       // 0: input from LUTs; 1: input from DFFs; 2: input from PinbitValues; 3: input from Initials; 4: input from Interface
+    vector<int>             in_net_from_id;         // ID of LUTs/DFFs; Value of PinbitValues/Initials (-1: Value_1; -2: Value_0); -3 if Interface
+    vector<string>          in_net_from_info;       // blank of LUTs/DFFs; INFO of PinbitValues/Initials/Interface
+    vector<int>             in_net_from_part;       // Part of LUTs/DFFs (-3 if the same part); -1 if PinbitValues/Initials/Interface
     vector<pair<int, int>>  in_net_from_addr;       // pair<int, int> (type of input from, address of MEM)
     vector<int>             in_net_from_ready;      // 1: ready; 0: not ready 
 
@@ -173,15 +174,16 @@ typedef struct
     vector<pair<string, vector<pair<string, int>>>> assignsig_condsig;      // <assignment signal, <condition signal, condition>>
     vector<string>          dff_in_ports;
     string                  dff_out;
+    string                  dff_out_ports_type;
 
     pair<int, int>          node_addr; 
     int                     FF_Datamem_Addr;
     int                     res_pos_at_mem;
 
-    vector<int>             in_net_from_type;       // 0: input from LUTs; 1: input from DFFs; 2: input from PinbitValues; 3: input from Initials
-    vector<int>             in_net_from_id;         // ID of LUTs/DFFs; Value of PinbitValues/Initials
-    vector<string>          in_net_from_info;       // blank of LUTs/DFFs; INFO of PinbitValues/Initials
-    vector<int>             in_net_from_part;       // Part of LUTs/DFFs (-3 if the same part); -1 if PinbitValues/Initials
+    vector<int>             in_net_from_type;       // 0: input from LUTs; 1: input from DFFs; 2: input from PinbitValues; 3: input from Initials; 4: input from interface
+    vector<int>             in_net_from_id;         // ID of LUTs/DFFs; Value of PinbitValues/Initials (-1: Value_1; -2: Value_0); -3 if Interface
+    vector<string>          in_net_from_info;       // blank of LUTs/DFFs; INFO of PinbitValues/Initials/Interface
+    vector<int>             in_net_from_part;       // Part of LUTs/DFFs (-3 if the same part); -1 if PinbitValues/Initials/Interface
     vector<pair<int, int>>  in_net_from_addr;       // pair<int, int> (type of input from, address of MEM)
     vector<int>             in_net_from_ready;      // 1: ready; 0: not ready
 

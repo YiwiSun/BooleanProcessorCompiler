@@ -29,7 +29,7 @@ public:
     vector<vector<int>> MLS(vector<vector<int>> &levels_ASAP, vector<vector<int>> &levels_ALAP, vector<vector<int>> &edges,
                             map<int, LutType> &luts, map<int, DffType> &dffs, int &nNode, int nParts, vector<idx_t> &part);
     int allocate_and_collapse_IMM(int &v, vector<int> &Max_Cycle, const int &maxcycle, const int &type, vector<int> &done, vector<vector<int>> &SchList, int &level,
-                                map<int, LutType> &luts, map<int, DffType> &dffs, vector<int> &BPSch, vector<idx_t> &part, vector<vector<int>> &nodes_in_per_bp);
+                                  map<int, LutType> &luts, map<int, DffType> &dffs, vector<int> &BPSch, vector<idx_t> &part, vector<vector<int>> &nodes_in_per_bp, vector<int> &interface_in_per_bp);
     void FF_allocate(vector<vector<int>> &nodes_in_per_bp, map<int, LutType> &luts, map<int, DffType> &dffs);
 };
 

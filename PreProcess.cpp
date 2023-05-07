@@ -13,7 +13,7 @@ using namespace std;
 /**
  * @brief Generate 'Input INFO List' for Scheduling and Instruction Generation(IG)
  *
- * 
+ *
  * @param part
  * @param luts
  * @param dffs
@@ -22,12 +22,15 @@ using namespace std;
  * @param net_from_id_dff
  * @param pinbitValues
  * @param assign_pairs
+ * @param vcd_values
+ * @param interface_addr
  */
 void PreProcess(vector<idx_t> &part,
                 map<int, LutType> &luts, map<int, DffType> &dffs, int &nNodes,
                 map<string, int> &net_from_id, map<string, int> &net_from_id_dff,
                 map<string, TimedValues *> &pinbitValues, map<string, string> &assign_pairs,
-                unordered_map<string, vector<short> *> &vcd_values)
+                unordered_map<string, vector<short> *> &vcd_values,
+                map<string, pair<int, int>> &interface_addr)
 {
     for (auto n = 0; n < nNodes; n++)
     {
@@ -79,6 +82,15 @@ void PreProcess(vector<idx_t> &part,
                         luts[n].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, MEM_DEPTH - 1));
                     luts[n].in_net_from_ready.push_back(1);
                 }
+                else if (interface_addr.find(cur_in) != interface_addr.end())
+                {
+                    luts[n].in_net_from_type.push_back(4);
+                    luts[n].in_net_from_id.push_back(-3);
+                    luts[n].in_net_from_info.push_back(cur_in);
+                    luts[n].in_net_from_part.push_back(-1);
+                    luts[n].in_net_from_addr.push_back(interface_addr[cur_in]);
+                    luts[n].in_net_from_ready.push_back(1);
+                }
                 else if (assign_pairs.find(cur_in) != assign_pairs.end())
                 {
                     string temp = assign_pairs[cur_in];
@@ -121,6 +133,15 @@ void PreProcess(vector<idx_t> &part,
                             luts[n].in_net_from_addr.push_back(make_pair(Inter_Datamem, MEM_DEPTH - 1));
                         else
                             luts[n].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, MEM_DEPTH - 1));
+                        luts[n].in_net_from_ready.push_back(1);
+                    }
+                    else if (interface_addr.find(temp) != interface_addr.end())
+                    {
+                        luts[n].in_net_from_type.push_back(4);
+                        luts[n].in_net_from_id.push_back(-3);
+                        luts[n].in_net_from_info.push_back(temp);
+                        luts[n].in_net_from_part.push_back(-1);
+                        luts[n].in_net_from_addr.push_back(interface_addr[temp]);
                         luts[n].in_net_from_ready.push_back(1);
                     }
                     else if (vcd_values.find(temp) != vcd_values.end())
@@ -233,6 +254,15 @@ void PreProcess(vector<idx_t> &part,
                         dffs[dff_num].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, MEM_DEPTH - 1));
                     dffs[dff_num].in_net_from_ready.push_back(1);
                 }
+                else if (interface_addr.find(cur_in) != interface_addr.end())
+                {
+                    dffs[dff_num].in_net_from_type.push_back(4);
+                    dffs[dff_num].in_net_from_id.push_back(-3);
+                    dffs[dff_num].in_net_from_info.push_back(cur_in);
+                    dffs[dff_num].in_net_from_part.push_back(-1);
+                    dffs[dff_num].in_net_from_addr.push_back(interface_addr[cur_in]);
+                    dffs[dff_num].in_net_from_ready.push_back(1);
+                }
                 else if (assign_pairs.find(cur_in) != assign_pairs.end())
                 {
                     string temp = assign_pairs[cur_in];
@@ -275,6 +305,15 @@ void PreProcess(vector<idx_t> &part,
                             dffs[dff_num].in_net_from_addr.push_back(make_pair(Inter_Datamem, MEM_DEPTH - 1));
                         else
                             dffs[dff_num].in_net_from_addr.push_back(make_pair(Exter_Datamem_0, MEM_DEPTH - 1));
+                        dffs[dff_num].in_net_from_ready.push_back(1);
+                    }
+                    else if (interface_addr.find(temp) != interface_addr.end())
+                    {
+                        dffs[dff_num].in_net_from_type.push_back(4);
+                        dffs[dff_num].in_net_from_id.push_back(-3);
+                        dffs[dff_num].in_net_from_info.push_back(temp);
+                        dffs[dff_num].in_net_from_part.push_back(-1);
+                        dffs[dff_num].in_net_from_addr.push_back(interface_addr[temp]);
                         dffs[dff_num].in_net_from_ready.push_back(1);
                     }
                     else if (vcd_values.find(temp) != vcd_values.end())
